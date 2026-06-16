@@ -26,5 +26,18 @@ export async function loadContractModel(config: AppConfig): Promise<ContractMode
     ownerId: String(contract.ownerId),
     version: typeof contract.version === 'number' ? contract.version : undefined,
   };
+
+  // Contract-level config / groups / tokens aren't on `schemas`; pull them from
+  // a full serialization. toJSON needs a platform version — use the SDK's, and
+  // degrade gracefully if it's unavailable for this contract format.
+  try {
+    const json = contract.toJSON(sdk.version()) as Record<string, unknown>;
+    if (json.config && typeof json.config === 'object') meta.config = json.config as Record<string, unknown>;
+    if (json.groups && typeof json.groups === 'object') meta.groups = json.groups as Record<string, unknown>;
+    if (json.tokens && typeof json.tokens === 'object') meta.tokens = json.tokens as Record<string, unknown>;
+  } catch {
+    // no contract-level metadata available — id/owner/version + per-type config still show
+  }
+
   return withInferredRelationships(toContractModel(schemas, meta));
 }

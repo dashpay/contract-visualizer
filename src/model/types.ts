@@ -57,6 +57,12 @@ export interface ContractModel {
   contractId?: string;
   ownerId?: string;
   version?: number;
+  /** Contract-level config (keepsHistory, readonly, …) when available. */
+  config?: Record<string, unknown>;
+  /** Group definitions, keyed by group contract position, when present. */
+  groups?: Record<string, unknown>;
+  /** Token configurations, keyed by token position, when present. */
+  tokens?: Record<string, unknown>;
   entities: Entity[];
   relationships: Relationship[];
 }

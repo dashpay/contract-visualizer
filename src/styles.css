@@ -165,6 +165,41 @@ button { font: inherit; cursor: pointer; }
 .cv-modal-actions { display: flex; gap: 10px; margin-top: 12px; }
 .cv-modal-actions button { background: var(--surface-2); border: 1px solid var(--border-strong); color: var(--text); border-radius: 6px; padding: 7px 14px; }
 
+/* Contract metadata panel (collapsible, top-left over canvas) */
+.cv-metapanel {
+  position: absolute; top: 12px; left: 12px; z-index: 6;
+  width: 300px; max-width: calc(100% - 24px);
+  background: var(--surface); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
+}
+.cv-metapanel-head {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface-2); border: none; padding: 8px 12px; color: var(--text);
+  font-weight: 500; font-size: 13px;
+}
+.cv-metapanel.open .cv-metapanel-head { border-bottom: 1px solid var(--border); }
+.cv-chevron { color: var(--text-muted); }
+.cv-metapanel-body { padding: 10px 12px; max-height: 60vh; overflow-y: auto; }
+.cv-meta-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 3px 0; }
+.cv-meta-label { color: var(--text-muted); font-size: 12px; white-space: nowrap; }
+.cv-meta-value { font-size: 12px; text-align: right; word-break: break-word; }
+.cv-meta-copy {
+  background: none; border: none; color: var(--text); font-size: 11px; padding: 0;
+  text-align: right; word-break: break-all; cursor: pointer; max-width: 200px;
+}
+.cv-meta-copy:hover { color: var(--accent); }
+.cv-meta-subhead {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--text-muted); margin: 10px 0 4px; border-top: 1px solid var(--border); padding-top: 8px;
+}
+.cv-meta-type { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 3px 0; }
+.cv-meta-type-name { font-size: 12px; }
+.cv-meta-chips { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+.cv-meta-chip {
+  font-size: 10px; color: var(--text-muted); background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 4px; padding: 0 5px;
+}
+
 /* React Flow edge label legibility */
 .react-flow__edge-text { font-size: 11px; fill: var(--text-muted); }
 .react-flow__edge-textbg { fill: var(--surface); }

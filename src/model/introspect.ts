@@ -157,6 +157,9 @@ export interface ContractMeta {
   contractId?: string;
   ownerId?: string;
   version?: number;
+  config?: Record<string, unknown>;
+  groups?: Record<string, unknown>;
+  tokens?: Record<string, unknown>;
 }
 
 export function toContractModel(schemas: Record<string, Schema>, meta: ContractMeta = {}): ContractModel {
@@ -178,10 +181,15 @@ export function modelFromPastedJson(input: unknown): ContractModel {
     | Record<string, Schema>
     | undefined;
   if (wrapped && typeof wrapped === 'object') {
+    const asRecord = (v: unknown) =>
+      v && typeof v === 'object' ? (v as Record<string, unknown>) : undefined;
     return toContractModel(wrapped, {
       contractId: typeof obj.id === 'string' ? obj.id : undefined,
       ownerId: typeof obj.ownerId === 'string' ? obj.ownerId : undefined,
       version: typeof obj.version === 'number' ? obj.version : undefined,
+      config: asRecord(obj.config),
+      groups: asRecord(obj.groups),
+      tokens: asRecord(obj.tokens),
     });
   }
   // Heuristic: treat top-level entries that look like document schemas as the map.

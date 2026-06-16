@@ -12,6 +12,7 @@ import { Canvas } from './flow/Canvas';
 import { Toolbar } from './components/Toolbar';
 import { InspectorPanel } from './components/InspectorPanel';
 import { PasteContractModal } from './components/PasteContractModal';
+import { ContractMetaPanel } from './components/ContractMetaPanel';
 
 const initial = loadConfig();
 
@@ -176,6 +177,7 @@ export default function App() {
               exportName={model.contractId ?? 'contract'}
             />
           )}
+          {model && <ContractMetaPanel model={model} />}
           {model && selection && (
             <InspectorPanel
               selection={selection}
