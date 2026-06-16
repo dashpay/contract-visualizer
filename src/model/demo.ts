@@ -5,7 +5,7 @@
 import type { ContractMeta } from './introspect';
 
 export const DEMO_META: ContractMeta = {
-  contractId: '2qEVUbg4znNgNRs3FJQ4kof4NKpB8q4fGtYa7qBouLzw',
+  contractId: '2gevmsNEaWnWQURQpuWeN5QnLfC2ufrZG4SXkVMqeUgZ',
   ownerId: '85KjYZLZXA7YZBPyFEjiMaH36xcQpBBZisKGBHF3uKuH',
   version: 1,
 };
@@ -42,14 +42,16 @@ export const DEMO_SCHEMAS: Record<string, Record<string, unknown>> = {
     canBeDeleted: false,
     creationRestrictionMode: 1,
     indices: [
-      { name: 'testIdCreatedAt', properties: [{ testId: 'asc' }, { $createdAt: 'asc' }] },
-      { name: 'resultCreatedAt', properties: [{ result: 'asc' }, { $createdAt: 'asc' }] },
-      { name: 'buildRef', properties: [{ buildRef: 'asc' }] },
+      { name: 'ownerTestNetwork', properties: [{ $ownerId: 'asc' }, { testId: 'asc' }, { network: 'asc' }] },
+      { name: 'ownerTestNetworkCreated', properties: [{ $ownerId: 'asc' }, { testId: 'asc' }, { network: 'asc' }, { $createdAt: 'asc' }] },
+      { name: 'ownerTestResultCreated', properties: [{ $ownerId: 'asc' }, { testId: 'asc' }, { result: 'asc' }, { $createdAt: 'asc' }] },
+      { name: 'ownerTestCreated', properties: [{ $ownerId: 'asc' }, { testId: 'asc' }, { $createdAt: 'asc' }] },
+      { name: 'buildRefOwner', properties: [{ buildRef: 'asc' }, { $ownerId: 'asc' }] },
     ],
     properties: {
       testId: { type: 'string', minLength: 1, maxLength: 32, position: 0, description: 'Test identifier this run is a result for.' },
       result: { type: 'string', minLength: 1, maxLength: 16, position: 1, description: 'pass | fail | blocked | skipped.' },
-      network: { type: 'string', minLength: 1, maxLength: 32, position: 2, description: 'Network executed against.' },
+      network: { type: 'integer', minimum: 0, position: 2, description: 'Network id: 0=mainnet, 1=testnet, 2=devnet, 3=regtest.' },
       buildRef: { type: 'string', minLength: 1, maxLength: 63, position: 3, description: 'Build under test.' },
       device: { type: 'string', maxLength: 128, position: 4, description: 'Device / simulator.' },
       evidence: { type: 'string', maxLength: 512, position: 5, description: 'txid / on-chain id / URL / path.' },

@@ -35,8 +35,8 @@ describe('toContractModel', () => {
 
   it('parses indices with fields and unique flag', () => {
     const testRun = model.entities.find((e) => e.name === 'testRun')!;
-    const composite = testRun.indices.find((i) => i.name === 'testIdCreatedAt')!;
-    expect(composite.fields.map((f) => f.field)).toEqual(['testId', '$createdAt']);
+    const composite = testRun.indices.find((i) => i.name === 'ownerTestCreated')!;
+    expect(composite.fields.map((f) => f.field)).toEqual(['$ownerId', 'testId', '$createdAt']);
     const uniqueIdx = model.entities
       .find((e) => e.name === 'testCase')!
       .indices.find((i) => i.name === 'testId')!;
