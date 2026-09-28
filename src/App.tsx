@@ -15,6 +15,7 @@ import { InspectorPanel } from './components/InspectorPanel';
 import { PasteContractModal } from './components/PasteContractModal';
 import { ContractMetaPanel } from './components/ContractMetaPanel';
 import { EXAMPLES, exampleId, exampleKey } from './examples';
+import { fileLabel, looksLikeUrl, urlFromSource, urlSourceId } from './urlSource';
 
 const initial = loadConfig();
 
@@ -24,7 +25,10 @@ export default function App() {
   const [network, setNetwork] = useState<Network>(initial.network);
   const [devnetName, setDevnetName] = useState(initial.devnetName ?? '');
   const [view, setView] = useState<ViewKind>(initial.view);
-  const [contractInput, setContractInput] = useState(exampleKey(initial.contractId) ? '' : initial.contractId);
+  const [contractInput, setContractInput] = useState(
+    exampleKey(initial.contractId) ? '' : (urlFromSource(initial.contractId) ?? initial.contractId),
+  );
+  const [source, setSource] = useState('');
   const [model, setModel] = useState<ContractModel | null>(null);
   const [status, setStatus] = useState<Status>('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -53,7 +57,9 @@ export default function App() {
   const updateUrl = useCallback((source: string, net: Network, devnet: string, v: ViewKind) => {
     const p = new URLSearchParams();
     const key = exampleKey(source);
+    const url = urlFromSource(source);
     if (key) p.set('example', key);
+    else if (url) p.set('url', url);
     else if (source) {
       p.set('contract', source);
       p.set('network', net);
@@ -86,6 +92,7 @@ export default function App() {
   const applyModel = useCallback(
     async (m: ContractModel, source: string, net: Network, devnet: string) => {
       setModel(m);
+      setSource(source);
       setSelection(null);
       const nextHidden = new Set<string>();
       setHiddenEdges(nextHidden);
@@ -119,7 +126,11 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const onLoad = useCallback((id: string) => void load(id, network, devnetName), [load, network, devnetName]);
+  // A link in the contract id box loads that JSON file instead of a registered contract.
+  const onLoad = useCallback(
+    (id: string) => void load(looksLikeUrl(id) ? urlSourceId(id) : id, network, devnetName),
+    [load, network, devnetName],
+  );
   const onExample = useCallback((key: string) => void load(exampleId(key), network, devnetName), [load, network, devnetName]);
   const onOpenContract = useCallback(
     (id: string) => {
@@ -254,7 +265,7 @@ export default function App() {
               onNodesChange={onNodesChange}
               onRelayout={onRelayout}
               layoutKey={layoutKey}
-              exportName={model.contractId ?? 'contract'}
+              exportName={model.contractId ?? fileLabel(urlFromSource(source) ?? '') ?? 'contract'}
               filters={filters}
               onFilters={changeFilters}
               counts={counts}

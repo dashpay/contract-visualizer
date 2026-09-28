@@ -3,19 +3,21 @@
 // seeds the first paint and powers shareable deep links.
 //
 // Resolution precedence (highest first):
-//   1. URL query   — ?contract=<id>&network=testnet&view=uml, ?example=<key> (or ?demo=1)
+//   1. URL query   — ?contract=<id>&network=testnet&view=uml, ?example=<key> (or ?demo=1),
+//                    ?url=<link to a contract JSON file>
 //   2. localStorage — last-used selection
 //   3. build-time env — VITE_CONTRACT_ID / VITE_NETWORK / VITE_DEVNET_NAME
 //   4. defaults
 
 import { exampleId } from './examples';
+import { urlSourceId } from './urlSource';
 
 export type Network = 'testnet' | 'mainnet' | 'devnet' | 'local';
 export type ViewKind = 'uml' | 'merise';
 
 export interface AppConfig {
   network: Network;
-  /** dash data contract id (base58), 'demo' / 'example:<key>', or '' when none chosen yet. */
+  /** dash data contract id (base58), 'demo' / 'example:<key>', 'url:<link>', or '' when none chosen yet. */
   contractId: string;
   devnetName?: string;
   view: ViewKind;
@@ -60,6 +62,8 @@ function readUrlParams(): Partial<AppConfig> {
     if (params.get('demo') !== null) out.contractId = 'demo';
     const example = params.get('example');
     if (example) out.contractId = exampleId(example.trim());
+    const url = params.get('url');
+    if (url) out.contractId = urlSourceId(url.trim());
     const contract = params.get('contract') ?? params.get('contractId');
     if (contract) out.contractId = contract.trim();
     const network = params.get('network');

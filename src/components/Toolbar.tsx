@@ -77,11 +77,11 @@ export function Toolbar({
         <input
           type="text"
           className="cv-mono"
-          placeholder="data contract id (base58)"
+          placeholder="data contract id (base58) or link to contract JSON"
           value={contractId}
           spellCheck={false}
           onChange={(e) => onContractId(e.target.value)}
-          aria-label="Contract id"
+          aria-label="Contract id or JSON link"
         />
         <button type="submit" className="cv-primary" disabled={status === 'loading' || !contractId.trim()}>
           {status === 'loading' ? 'Loading…' : 'Load'}

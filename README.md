@@ -20,7 +20,8 @@ npm run dev        # http://localhost:5173
 
 Then either:
 - open one of the **Examples** (or visit `?example=marketplace`, `?demo=1` for the default);
-- pick a **network**, paste a **contract id**, and click **Load** (a devnet also needs its name, e.g. `moutai`); or
+- pick a **network**, paste a **contract id**, and click **Load** (a devnet also needs its name, e.g. `moutai`);
+- put a **link to a contract JSON file** in the same box, or open `?url=<link>`: handy for a contract in a pull request that is not registered yet. GitHub page links (`github.com/<owner>/<repo>/blob/<ref>/<path>`) are fetched from `raw.githubusercontent.com`; any other host must allow cross-origin reads; or
 - click **Paste JSON** to diagram a contract (or a bare document-schemas block) locally, handy while authoring a schema before it is registered.
 
 ## How relationships work
@@ -82,7 +83,9 @@ parser against (`-- --write` regenerates it after an SDK bump or a new example).
 - Click any field / index / constraint / entity / edge / external node for details in the inspector.
 - Legend (bottom) with filters: declared, inferred, platform objects.
 - **Export** the diagram to PNG or SVG.
-- Deep links: `?contract=<id>&network=testnet&view=uml`, `?contract=<id>&network=devnet&devnet=moutai`, `?example=<key>` (and `?demo=1`), shareable; the URL updates as you load contracts.
+- Deep links: `?contract=<id>&network=testnet&view=uml`, `?contract=<id>&network=devnet&devnet=moutai`, `?url=<link to a contract JSON file>`, `?example=<key>` (and `?demo=1`), shareable; the URL updates as you load contracts. For example, a contract file in a pull request: `https://dashpay.github.io/contract-visualizer/?url=https://github.com/<owner>/<repo>/blob/<commit>/contracts/<file>.json`.
+
+The Vite dev server reads `?url` as its own asset-import query; a small dev-only plugin in `vite.config.ts` serves the app for such page requests. Static hosting needs nothing.
 
 ## SDK version
 
@@ -116,7 +119,8 @@ One-time: repo settings → **Pages → Source: GitHub Actions**.
 
 ```
 src/
-  config.ts              # contract id / example + network + view resolution (URL / localStorage / env)
+  config.ts              # contract id / example / link + network + view resolution (URL / localStorage / env)
+  urlSource.ts           # ?url= and pasted links: GitHub blob -> raw, fetch + parse
   sdk/
     client.ts            # Evo SDK trusted connection, memoised per network
     contract.ts          # fetch contract (toJSON) -> ContractModel, or a bundled example

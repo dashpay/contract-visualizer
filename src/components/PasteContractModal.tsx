@@ -20,7 +20,8 @@ export function PasteContractModal({ onApply, onClose, error }: Props) {
         </div>
         <p className="cv-muted">
           Paste a full contract (with a <code>documentSchemas</code> block) or a bare{' '}
-          <code>{'{ docType: { properties, indices } }'}</code> map. Nothing is sent anywhere — this is parsed locally.
+          <code>{'{ docType: { properties, indices } }'}</code> map. Nothing is sent anywhere: this is parsed locally. For a file on the web,
+          put its link in the contract id box instead (or open <code>?url=&lt;link&gt;</code>).
         </p>
         <textarea
           className="cv-mono"

@@ -5,11 +5,15 @@
 
 import type { AppConfig } from '../config';
 import { exampleKey, findExample } from '../examples';
+import { fetchContractJson, urlFromSource } from '../urlSource';
 import { modelFromPastedJson } from '../model/introspect';
 import { withRelationships } from '../model/relationships';
 import type { ContractModel } from '../model/types';
 
 export async function loadContractModel(config: AppConfig): Promise<ContractModel> {
+  const url = urlFromSource(config.contractId);
+  if (url) return withRelationships(modelFromPastedJson(await fetchContractJson(url)));
+
   const key = exampleKey(config.contractId);
   if (key) {
     const example = findExample(key);
