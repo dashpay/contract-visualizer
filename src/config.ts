@@ -3,17 +3,19 @@
 // seeds the first paint and powers shareable deep links.
 //
 // Resolution precedence (highest first):
-//   1. URL query   — ?contract=<id>&network=testnet&view=uml (or ?demo=1)
+//   1. URL query   — ?contract=<id>&network=testnet&view=uml, ?example=<key> (or ?demo=1)
 //   2. localStorage — last-used selection
-//   3. build-time env — VITE_CONTRACT_ID / VITE_NETWORK
+//   3. build-time env — VITE_CONTRACT_ID / VITE_NETWORK / VITE_DEVNET_NAME
 //   4. defaults
+
+import { exampleId } from './examples';
 
 export type Network = 'testnet' | 'mainnet' | 'devnet' | 'local';
 export type ViewKind = 'uml' | 'merise';
 
 export interface AppConfig {
   network: Network;
-  /** dash data contract id (base58), or 'demo', or '' when none chosen yet. */
+  /** dash data contract id (base58), 'demo' / 'example:<key>', or '' when none chosen yet. */
   contractId: string;
   devnetName?: string;
   view: ViewKind;
@@ -56,6 +58,8 @@ function readUrlParams(): Partial<AppConfig> {
     const params = new URLSearchParams(window.location.search);
     const out: Partial<AppConfig> = {};
     if (params.get('demo') !== null) out.contractId = 'demo';
+    const example = params.get('example');
+    if (example) out.contractId = exampleId(example.trim());
     const contract = params.get('contract') ?? params.get('contractId');
     if (contract) out.contractId = contract.trim();
     const network = params.get('network');
@@ -71,8 +75,12 @@ function readUrlParams(): Partial<AppConfig> {
 }
 
 export function saveOverride(patch: Partial<AppConfig>): void {
-  const merged = { ...readOverride(), ...patch };
-  localStorage.setItem(LS_KEY, JSON.stringify(merged));
+  try {
+    const merged = { ...readOverride(), ...patch };
+    localStorage.setItem(LS_KEY, JSON.stringify(merged));
+  } catch {
+    // storage unavailable (private window): the URL still carries the selection
+  }
 }
 
 export function loadConfig(): AppConfig {

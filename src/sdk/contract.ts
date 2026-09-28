@@ -1,43 +1,48 @@
 // Fetch a data contract via the Evo SDK and build the diagram model.
+//
+// The SDK (with its inlined WASM, several MB) is imported on the first network
+// fetch only, so examples and pasted JSON render without downloading it.
 
 import type { AppConfig } from '../config';
-import { getConnectedSdk } from './client';
-import { DEMO_META, DEMO_SCHEMAS, isDemo } from '../model/demo';
-import { toContractModel, type ContractMeta } from '../model/introspect';
-import { withInferredRelationships } from '../model/relationships';
+import { exampleKey, findExample } from '../examples';
+import { modelFromPastedJson } from '../model/introspect';
+import { withRelationships } from '../model/relationships';
 import type { ContractModel } from '../model/types';
 
 export async function loadContractModel(config: AppConfig): Promise<ContractModel> {
-  if (isDemo(config.contractId)) {
-    return withInferredRelationships(toContractModel(DEMO_SCHEMAS, DEMO_META));
+  const key = exampleKey(config.contractId);
+  if (key) {
+    const example = findExample(key);
+    if (!example) throw new Error(`No bundled example named "${key}".`);
+    return withRelationships(modelFromPastedJson(example.contract));
   }
 
+  const { getConnectedSdk } = await import('./client');
   const sdk = await getConnectedSdk(config);
   const contract = await sdk.contracts.fetch(config.contractId);
   if (!contract) {
     throw new Error(`Contract ${config.contractId} not found on ${config.network}.`);
   }
 
-  // `schemas` is the parsed docTypeName -> JSON-schema record (no platform
-  // version needed). id/ownerId are Identifier objects -> base58 via String().
-  const schemas = contract.schemas as Record<string, Record<string, unknown>>;
-  const meta: ContractMeta = {
-    contractId: String(contract.id),
-    ownerId: String(contract.ownerId),
-    version: typeof contract.version === 'number' ? contract.version : undefined,
-  };
-
-  // Contract-level config / groups / tokens aren't on `schemas`; pull them from
-  // a full serialization. toJSON needs a platform version — use the SDK's, and
-  // degrade gracefully if it's unavailable for this contract format.
+  // toJSON carries everything the diagram reads: documentSchemas (with every
+  // keyword as written), schemaDefs, config (moderation included), groups,
+  // tokens, keywords, description and the timestamps. It needs a platform
+  // version; the SDK's is the network's.
+  let json: Record<string, unknown>;
   try {
-    const json = contract.toJSON(sdk.version()) as Record<string, unknown>;
-    if (json.config && typeof json.config === 'object') meta.config = json.config as Record<string, unknown>;
-    if (json.groups && typeof json.groups === 'object') meta.groups = json.groups as Record<string, unknown>;
-    if (json.tokens && typeof json.tokens === 'object') meta.tokens = json.tokens as Record<string, unknown>;
+    json = contract.toJSON(sdk.version()) as Record<string, unknown>;
   } catch {
-    // no contract-level metadata available — id/owner/version + per-type config still show
+    // Fall back to the schemas alone if this contract format cannot be serialized here.
+    json = {
+      id: String(contract.id),
+      ownerId: String(contract.ownerId),
+      version: typeof contract.version === 'number' ? contract.version : undefined,
+      documentSchemas: contract.schemas,
+    };
   }
+  if (!json.documentSchemas) json.documentSchemas = contract.schemas;
+  if (typeof json.id !== 'string') json.id = String(contract.id);
+  if (typeof json.ownerId !== 'string') json.ownerId = String(contract.ownerId);
 
-  return withInferredRelationships(toContractModel(schemas, meta));
+  return withRelationships(modelFromPastedJson(json));
 }

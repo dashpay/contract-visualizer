@@ -1,9 +1,9 @@
 {
   "name": "contract-visualizer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Interactive UML / Merise diagrams of Dash Platform data contracts — fetch a contract and visualise its document types, fields, and indexes.",
+  "description": "Interactive UML / Merise diagrams of Dash Platform data contracts: document types, fields, indexes, and the references (refersTo) between them.",
   "license": "MIT",
   "scripts": {
     "dev": "vite",
@@ -11,10 +11,11 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "tsc -b --noEmit",
+    "validate:examples": "node scripts/validate-examples.mjs"
   },
   "dependencies": {
-    "@dashevo/evo-sdk": "4.0.0-rc.2",
+    "@dashevo/evo-sdk": "4.2.0-beta.4",
     "@xyflow/react": "^12.3.5",
     "elkjs": "^0.9.3",
     "html-to-image": "^1.11.11",

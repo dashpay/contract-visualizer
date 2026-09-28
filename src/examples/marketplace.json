@@ -1,0 +1,599 @@
+{
+  "$formatVersion": "1",
+  "id": "8ZkJ4u3M2d9sZxbGq7aDCzXz8Z7hNrpS1WnS3J5PC5Qm",
+  "ownerId": "AtirhSVpAWF7dEt6dLAmesC4Sr1MsJ9bFC1nLAoNnq2S",
+  "version": 2,
+  "config": {
+    "$formatVersion": "2",
+    "canBeDeleted": false,
+    "readonly": false,
+    "keepsHistory": false,
+    "documentsKeepHistoryContractDefault": false,
+    "documentsMutableContractDefault": true,
+    "documentsCanBeDeletedContractDefault": true,
+    "sizedIntegerTypes": true,
+    "moderation": {
+      "banlist": true,
+      "warnings": true,
+      "moderators": {
+        "$type": "appointedModerators",
+        "identities": [
+          "AtirhSVpAWF7dEt6dLAmesC4Sr1MsJ9bFC1nLAoNnq2S"
+        ]
+      }
+    }
+  },
+  "schemaDefs": {
+    "credits": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000000000,
+      "description": "An amount in credits"
+    }
+  },
+  "keywords": [
+    "marketplace",
+    "shop",
+    "showcase"
+  ],
+  "description": "Illustrative marketplace using the protocol 14 keywords",
+  "documentSchemas": {
+    "shop": {
+      "type": "object",
+      "documentsMutable": true,
+      "canBeDeleted": false,
+      "requiresIdentityDecryptionBoundedKey": 1,
+      "immutable": [
+        "handle"
+      ],
+      "indices": [
+        {
+          "name": "byOwner",
+          "properties": [
+            {
+              "$ownerId": "asc"
+            }
+          ],
+          "unique": true
+        },
+        {
+          "name": "byHandle",
+          "properties": [
+            {
+              "handle": "asc"
+            }
+          ],
+          "unique": true
+        }
+      ],
+      "properties": {
+        "handle": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 24,
+          "pattern": "^[a-z0-9-]+$",
+          "position": 0,
+          "description": "URL-safe shop name, fixed at creation"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "maxBytes": 128,
+          "position": 1
+        },
+        "bio": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxBytes": 2000,
+          "position": 2
+        },
+        "dpnsDomainId": {
+          "type": "array",
+          "byteArray": true,
+          "minItems": 32,
+          "maxItems": 32,
+          "contentMediaType": "application/x.dash.dpp.identifier",
+          "position": 3,
+          "description": "The owner's DPNS name, shown on the shop",
+          "refersTo": {
+            "type": "deletableDocument",
+            "contractId": "GWRSAVFMjXx8HpQFaNJMqBV7MBgMK4br5UESsB4S31Ec",
+            "documentType": "domain",
+            "propertyAgreement": {
+              "$ownerId": "$ownerId"
+            }
+          }
+        },
+        "payoutTokenId": {
+          "type": "array",
+          "byteArray": true,
+          "minItems": 32,
+          "maxItems": 32,
+          "contentMediaType": "application/x.dash.dpp.identifier",
+          "position": 4,
+          "description": "Token the shop prices in, if any",
+          "refersTo": {
+            "type": "token"
+          }
+        }
+      },
+      "required": [
+        "$createdAt",
+        "$updatedAt",
+        "handle",
+        "displayName"
+      ],
+      "additionalProperties": false,
+      "description": "A seller's storefront, one per identity"
+    },
+    "listing": {
+      "type": "object",
+      "documentsMutable": true,
+      "canBeDeleted": true,
+      "ttl": 2592000,
+      "canBeDeletedByModerators": true,
+      "canBeDeletedByModeratorsFor": 604800,
+      "immutable": [
+        "shopId",
+        "sku"
+      ],
+      "immutableAllowSetting": [
+        "sku"
+      ],
+      "documentsCountable": true,
+      "actionFees": {
+        "create": {
+          "owner": 100000,
+          "moderators": 50000
+        }
+      },
+      "indices": [
+        {
+          "name": "byShop",
+          "properties": [
+            {
+              "shopId": "asc"
+            },
+            {
+              "$createdAt": "asc"
+            }
+          ],
+          "countable": "countable"
+        },
+        {
+          "name": "byCategoryPrice",
+          "properties": [
+            {
+              "category": "asc"
+            },
+            {
+              "price": "asc"
+            }
+          ]
+        },
+        {
+          "name": "newListings",
+          "properties": [
+            {
+              "$createdAt": "asc"
+            }
+          ],
+          "timeRange": {
+            "on": "$createdAt",
+            "range": 86400,
+            "step": 3600
+          },
+          "countable": "countable"
+        }
+      ],
+      "properties": {
+        "shopId": {
+          "type": "array",
+          "byteArray": true,
+          "minItems": 32,
+          "maxItems": 32,
+          "contentMediaType": "application/x.dash.dpp.identifier",
+          "position": 0,
+          "refersTo": {
+            "type": "permanentDocument",
+            "documentType": "shop",
+            "propertyAgreement": {
+              "$ownerId": "$ownerId"
+            }
+          },
+          "description": "Only the shop's owner lists in it"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "maxBytes": 240,
+          "position": 1
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "art",
+            "books",
+            "electronics",
+            "home",
+            "other"
+          ],
+          "maxLength": 16,
+          "position": 2
+        },
+        "price": {
+          "$ref": "#/$defs/credits",
+          "position": 3
+        },
+        "salePrice": {
+          "$ref": "#/$defs/credits",
+          "position": 4
+        },
+        "tags": {
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 24
+          },
+          "position": 5
+        },
+        "sku": {
+          "type": "string",
+          "maxLength": 32,
+          "position": 6,
+          "description": "Seller's own code; may be set once later"
+        },
+        "photoHash": {
+          "type": "array",
+          "byteArray": true,
+          "minItems": 32,
+          "maxItems": 32,
+          "requiredSince": 2,
+          "position": 7
+        }
+      },
+      "required": [
+        "$createdAt",
+        "$updatedAt",
+        "shopId",
+        "title",
+        "category",
+        "price",
+        "photoHash"
+      ],
+      "propertyConstraints": {
+        "saleBelowPrice": {
+          "lessThan": [
+            {
+              "ifAbsent": [
+                "salePrice",
+                0
+              ]
+            },
+            "price"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "description": "An item for sale; expires after 30 days"
+    },
+    "offer": {
+      "type": "object",
+      "documentsMutable": false,
+      "canBeDeleted": true,
+      "requiresIdentityEncryptionBoundedKey": 1,
+      "transient": [
+        "acceptTerms"
+      ],
+      "indices": [
+        {
+          "name": "byListing",
+          "properties": [
+            {
+              "listingId": "asc"
+            },
+            {
+              "amount": "asc"
+            }
+          ]
+        },
+        {
+          "name": "byBuyer",
+          "properties": [
+            {
+              "$ownerId": "asc"
+            },
+            {
+              "$createdAt": "asc"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "listingId": {
+          "type": "array",
+          "byteArray": true,
+          "minItems": 32,
+          "maxItems": 32,
+          "contentMediaType": "application/x.dash.dpp.identifier",
+          "position": 0,
+          "refersTo": {
+            "type": "deletableDocument",
+            "documentType": "listing",
+            "propertyAgreement": {
+              "sellerId": "$ownerId"
+            }
+          }
+        },
+        "sellerId": {
+          "type": "array",
+          "byteArray": true,
+          "minItems": 32,
+          "maxItems": 32,
+          "contentMediaType": "application/x.dash.dpp.identifier",
+          "position": 1,
+          "distinctFrom": "$ownerId",
+          "refersTo": {
+            "type": "identityPublicKey",
+            "keyIdProperty": "sellerKeyId",
+            "keyRequirements": {
+              "purpose": "decryption",
+              "boundTo": "shop"
+            }
+          }
+        },
+        "sellerKeyId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295,
+          "position": 2
+        },
+        "buyerKeyId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295,
+          "position": 3,
+          "refersTo": {
+            "type": "identityPublicKey",
+            "identityProperty": "$ownerId",
+            "keyRequirements": {
+              "purpose": "encryption",
+              "boundTo": "offer"
+            }
+          }
+        },
+        "amount": {
+          "$ref": "#/$defs/credits",
+          "position": 4
+        },
+        "note": {
+          "type": "array",
+          "byteArray": true,
+          "minItems": 32,
+          "maxItems": 1040,
+          "position": 5,
+          "description": "Readable by the seller only",
+          "encryptedFor": {
+            "recipient": "sellerId",
+            "recipientKey": "sellerKeyId",
+            "senderKey": "buyerKeyId",
+            "scheme": "ecdh-secp256k1-aes256-cbc"
+          }
+        },
+        "acceptTerms": {
+          "type": "boolean",
+          "position": 6,
+          "description": "Checked on the transition, never stored"
+        }
+      },
+      "required": [
+        "$createdAt",
+        "listingId",
+        "sellerId",
+        "sellerKeyId",
+        "buyerKeyId",
+        "amount",
+        "acceptTerms"
+      ],
+      "additionalProperties": false,
+      "description": "A buyer's offer with a private note to the seller"
+    },
+    "giftCard": {
+      "type": "object",
+      "documentsMutable": false,
+      "canBeDeleted": true,
+      "transferable": 1,
+      "tradeMode": 1,
+      "keepsTransferHistory": true,
+      "keepsPurchaseHistory": true,
+      "creatorRefersTo": {
+        "type": "permanentDocument",
+        "documentType": "shop",
+        "lookup": {
+          "index": "byOwner",
+          "keys": {
+            "$ownerId": "."
+          }
+        }
+      },
+      "indices": [
+        {
+          "name": "byShop",
+          "properties": [
+            {
+              "shopId": "asc"
+            }
+          ]
+        },
+        {
+          "name": "byOwner",
+          "properties": [
+            {
+              "$ownerId": "asc"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "shopId": {
+          "type": "array",
+          "byteArray": true,
+          "minItems": 32,
+          "maxItems": 32,
+          "contentMediaType": "application/x.dash.dpp.identifier",
+          "position": 0,
+          "refersTo": {
+            "type": "permanentDocument",
+            "documentType": "shop"
+          }
+        },
+        "value": {
+          "$ref": "#/$defs/credits",
+          "position": 1
+        }
+      },
+      "required": [
+        "$createdAt",
+        "shopId",
+        "value"
+      ],
+      "additionalProperties": false,
+      "description": "Only a shop owner can mint one; anyone can hold or resell it"
+    },
+    "review": {
+      "type": "object",
+      "documentsMutable": true,
+      "canBeDeleted": true,
+      "canBeDeletedByModerators": true,
+      "indices": [
+        {
+          "name": "bySubject",
+          "properties": [
+            {
+              "subjectId": "asc"
+            }
+          ],
+          "countable": "countable",
+          "summable": "rating",
+          "averageable": "rating",
+          "rangeCountable": true,
+          "rangeSummable": true,
+          "rangeAverageable": true,
+          "rankedAverageable": true
+        },
+        {
+          "name": "byAuthorSubject",
+          "properties": [
+            {
+              "$ownerId": "asc"
+            },
+            {
+              "subjectId": "asc"
+            }
+          ],
+          "unique": true
+        }
+      ],
+      "properties": {
+        "subjectId": {
+          "type": "array",
+          "byteArray": true,
+          "minItems": 32,
+          "maxItems": 32,
+          "contentMediaType": "application/x.dash.dpp.identifier",
+          "position": 0,
+          "refersTo": {
+            "anyOf": [
+              {
+                "type": "permanentDocument",
+                "documentType": "shop"
+              },
+              {
+                "type": "identity"
+              }
+            ]
+          }
+        },
+        "rating": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "position": 1
+        },
+        "body": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxBytes": 4000,
+          "position": 2
+        }
+      },
+      "required": [
+        "$createdAt",
+        "subjectId",
+        "rating"
+      ],
+      "additionalProperties": false,
+      "description": "A 1-5 star review of a shop or of a person"
+    },
+    "report": {
+      "type": "object",
+      "documentsMutable": false,
+      "canBeDeleted": true,
+      "ttl": 7776000,
+      "indices": [
+        {
+          "name": "byListing",
+          "properties": [
+            {
+              "listingId": "asc"
+            }
+          ],
+          "countable": "countable"
+        }
+      ],
+      "properties": {
+        "listingId": {
+          "type": "array",
+          "byteArray": true,
+          "minItems": 32,
+          "maxItems": 32,
+          "contentMediaType": "application/x.dash.dpp.identifier",
+          "position": 0,
+          "refersTo": {
+            "type": "deletableDocument",
+            "documentType": "listing"
+          }
+        },
+        "reason": {
+          "type": "string",
+          "enum": [
+            "spam",
+            "scam",
+            "offensive",
+            "counterfeit"
+          ],
+          "maxLength": 16,
+          "position": 1
+        },
+        "details": {
+          "type": "string",
+          "maxLength": 500,
+          "maxBytes": 1000,
+          "position": 2
+        }
+      },
+      "required": [
+        "$createdAt",
+        "listingId",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "description": "A flag for the moderators; expires after 90 days"
+    }
+  }
+}
