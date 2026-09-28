@@ -1,0 +1,2202 @@
+{
+  "marketplace:listing": {
+    "documentType": "listing",
+    "assumptions": {
+      "existingDocuments": 1000,
+      "signatureKeyType": "ECDSA_SECP256K1",
+      "userFeeIncrease": 0,
+      "feeMultiplierPermille": 1000,
+      "contenders": 0
+    },
+    "documentBytes": 309,
+    "creditsPerByte": 136,
+    "creditsPerDash": 100000000000,
+    "storage": {
+      "bytes": {
+        "newValues": 14980,
+        "knownValues": 7437
+      },
+      "credits": {
+        "newValues": 2037280,
+        "knownValues": 1011432
+      },
+      "primaryBytes": {
+        "newValues": 530,
+        "knownValues": 530
+      },
+      "preallocatedBytes": {
+        "newValues": 0,
+        "knownValues": 0
+      },
+      "expirationBytes": {
+        "newValues": 364,
+        "knownValues": 241
+      }
+    },
+    "indexes": [
+      {
+        "name": "byCategoryPrice",
+        "sharedWith": [],
+        "sharedBytes": {
+          "newValues": 0,
+          "knownValues": 0
+        },
+        "ownBytes": {
+          "newValues": 713,
+          "knownValues": 241
+        }
+      },
+      {
+        "name": "byShop",
+        "sharedWith": [],
+        "sharedBytes": {
+          "newValues": 0,
+          "knownValues": 0
+        },
+        "ownBytes": {
+          "newValues": 821,
+          "knownValues": 257
+        }
+      },
+      {
+        "name": "newListings",
+        "sharedWith": [],
+        "sharedBytes": {
+          "newValues": 0,
+          "knownValues": 0
+        },
+        "ownBytes": {
+          "newValues": 12552,
+          "knownValues": 6168
+        }
+      }
+    ],
+    "elements": [
+      {
+        "role": "document",
+        "path": [
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 530,
+        "indexes": [],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x80000197741ac180"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x80000197741ac180",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x80000197741ac180",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019773e3d300"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019773e3d300",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019773e3d300",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019773ace480"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019773ace480",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019773ace480",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001977375f600"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001977375f600",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001977375f600",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x80000197733f0780"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x80000197733f0780",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x80000197733f0780",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019773081900"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019773081900",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019773081900",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019772d12a80"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019772d12a80",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019772d12a80",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x80000197729a3c00"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x80000197729a3c00",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x80000197729a3c00",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019772634d80"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019772634d80",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019772634d80",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x80000197722c5f00"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x80000197722c5f00",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x80000197722c5f00",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019771f57080"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019771f57080",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019771f57080",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019771be8200"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019771be8200",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019771be8200",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019771879380"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019771879380",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019771879380",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001977150a500"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001977150a500",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001977150a500",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001977119b680"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001977119b680",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001977119b680",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019770e2c800"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019770e2c800",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019770e2c800",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019770abd980"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019770abd980",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019770abd980",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001977074eb00"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001977074eb00",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001977074eb00",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x80000197703dfc80"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x80000197703dfc80",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x80000197703dfc80",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019770070e00"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019770070e00",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x8000019770070e00",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001976fd01f80"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001976fd01f80",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001976fd01f80",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001976f993100"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001976f993100",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001976f993100",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001976f624280"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001976f624280",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001976f624280",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001976f2b5400"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001976f2b5400",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$createdAt#86400#3600",
+          "0x800001976f2b5400",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "newListings"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "category",
+          "aaaaaaaa"
+        ],
+        "bytes": 123,
+        "indexes": [
+          "byCategoryPrice"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "nextIndexProperty",
+        "path": [
+          "category",
+          "aaaaaaaa",
+          "price"
+        ],
+        "bytes": 117,
+        "indexes": [
+          "byCategoryPrice"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "category",
+          "aaaaaaaa",
+          "price",
+          "0x8000000000000001"
+        ],
+        "bytes": 123,
+        "indexes": [
+          "byCategoryPrice"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "category",
+          "aaaaaaaa",
+          "price",
+          "0x8000000000000001",
+          "0x00"
+        ],
+        "bytes": 109,
+        "indexes": [
+          "byCategoryPrice"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "category",
+          "aaaaaaaa",
+          "price",
+          "0x8000000000000001",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 241,
+        "indexes": [
+          "byCategoryPrice"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "shopId",
+          "0x0101010101010101010101010101010101010101010101010101010101010101"
+        ],
+        "bytes": 171,
+        "indexes": [
+          "byShop"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "nextIndexProperty",
+        "path": [
+          "shopId",
+          "0x0101010101010101010101010101010101010101010101010101010101010101",
+          "$createdAt"
+        ],
+        "bytes": 127,
+        "indexes": [
+          "byShop"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "shopId",
+          "0x0101010101010101010101010101010101010101010101010101010101010101",
+          "$createdAt",
+          "0x800001977420dc00"
+        ],
+        "bytes": 132,
+        "indexes": [
+          "byShop"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "shopId",
+          "0x0101010101010101010101010101010101010101010101010101010101010101",
+          "$createdAt",
+          "0x800001977420dc00",
+          "0x00"
+        ],
+        "bytes": 134,
+        "indexes": [
+          "byShop"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "shopId",
+          "0x0101010101010101010101010101010101010101010101010101010101010101",
+          "$createdAt",
+          "0x800001977420dc00",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "byShop"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "0x000001980e9fa400"
+        ],
+        "bytes": 123,
+        "indexes": [],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": true
+      },
+      {
+        "role": "member",
+        "path": [
+          "0x000001980e9fa400",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 241,
+        "indexes": [],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": true
+      }
+    ],
+    "processing": [
+      {
+        "code": "signature",
+        "text": "verifying the transition's ECDSA_SECP256K1 signature",
+        "credits": {
+          "newValues": 15000,
+          "knownValues": 15000
+        },
+        "exact": true
+      },
+      {
+        "code": "identity",
+        "text": "fetching the signing key and the balance of the identity",
+        "credits": {
+          "newValues": 18000,
+          "knownValues": 18000
+        },
+        "exact": true
+      },
+      {
+        "code": "writes",
+        "text": "writing the elements: seeks, hashing and rewriting the paths to them in trees of about 1000 entries",
+        "credits": {
+          "newValues": 12073680,
+          "knownValues": 16819520
+        },
+        "exact": false
+      },
+      {
+        "code": "checks",
+        "text": "checking the document does not exist yet and bumping the identity's nonce for the contract",
+        "credits": {
+          "newValues": 70400,
+          "knownValues": 70400
+        },
+        "exact": false
+      },
+      {
+        "code": "ttlCleanup",
+        "text": "the deletion of the document when its ttl runs out, prepaid",
+        "credits": {
+          "newValues": 12529780,
+          "knownValues": 12529780
+        },
+        "exact": true
+      }
+    ],
+    "processingCredits": {
+      "newValues": 24706860,
+      "knownValues": 29452700
+    },
+    "contractCharges": [
+      {
+        "kind": "actionFee",
+        "pricing": "feeMultiplier",
+        "declared": {
+          "owner": 100000,
+          "moderators": 50000
+        },
+        "charged": {
+          "owner": 100000,
+          "moderators": 50000
+        }
+      }
+    ],
+    "refund": {
+      "sameEpoch": {
+        "newValues": 0,
+        "knownValues": 0
+      },
+      "afterOneYear": {
+        "newValues": 0,
+        "knownValues": 0
+      }
+    },
+    "totalCredits": {
+      "newValues": 26894140,
+      "knownValues": 30614132
+    },
+    "fields": [
+      {
+        "path": "shopId",
+        "kind": "identifier",
+        "optional": false,
+        "present": true
+      },
+      {
+        "path": "title",
+        "kind": "string",
+        "optional": false,
+        "present": true,
+        "length": 60,
+        "minLength": 1,
+        "maxLength": 120
+      },
+      {
+        "path": "category",
+        "kind": "string",
+        "optional": false,
+        "present": true,
+        "length": 8,
+        "minLength": 0,
+        "maxLength": 16
+      },
+      {
+        "path": "price",
+        "kind": "integer",
+        "optional": false,
+        "present": true
+      },
+      {
+        "path": "salePrice",
+        "kind": "integer",
+        "optional": true,
+        "present": true
+      },
+      {
+        "path": "tags",
+        "kind": "array",
+        "optional": true,
+        "present": true,
+        "length": 4,
+        "minLength": 0,
+        "maxLength": 8
+      },
+      {
+        "path": "sku",
+        "kind": "string",
+        "optional": true,
+        "present": true,
+        "length": 16,
+        "minLength": 0,
+        "maxLength": 32
+      },
+      {
+        "path": "photoHash",
+        "kind": "byteArray",
+        "optional": false,
+        "present": true
+      }
+    ]
+  },
+  "dpns:domain": {
+    "documentType": "domain",
+    "assumptions": {
+      "existingDocuments": 1000,
+      "signatureKeyType": "ECDSA_SECP256K1",
+      "userFeeIncrease": 0,
+      "feeMultiplierPermille": 1000,
+      "contenders": 0
+    },
+    "documentBytes": 295,
+    "creditsPerByte": 27000,
+    "creditsPerDash": 100000000000,
+    "storage": {
+      "bytes": {
+        "newValues": 1785,
+        "knownValues": 1199
+      },
+      "credits": {
+        "newValues": 48195000,
+        "knownValues": 32373000
+      },
+      "primaryBytes": {
+        "newValues": 536,
+        "knownValues": 536
+      },
+      "preallocatedBytes": {
+        "newValues": 0,
+        "knownValues": 0
+      },
+      "expirationBytes": {
+        "newValues": 0,
+        "knownValues": 0
+      }
+    },
+    "indexes": [
+      {
+        "name": "identityId",
+        "sharedWith": [],
+        "sharedBytes": {
+          "newValues": 0,
+          "knownValues": 0
+        },
+        "ownBytes": {
+          "newValues": 558,
+          "knownValues": 278
+        }
+      },
+      {
+        "name": "parentNameAndLabel",
+        "sharedWith": [],
+        "sharedBytes": {
+          "newValues": 0,
+          "knownValues": 0
+        },
+        "ownBytes": {
+          "newValues": 691,
+          "knownValues": 385
+        }
+      }
+    ],
+    "elements": [
+      {
+        "role": "document",
+        "path": [
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 536,
+        "indexes": [],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "normalizedParentDomainName",
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        ],
+        "bytes": 169,
+        "indexes": [
+          "parentNameAndLabel"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "nextIndexProperty",
+        "path": [
+          "normalizedParentDomainName",
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "normalizedLabel"
+        ],
+        "bytes": 137,
+        "indexes": [
+          "parentNameAndLabel"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "normalizedParentDomainName",
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "normalizedLabel",
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        ],
+        "bytes": 169,
+        "indexes": [
+          "parentNameAndLabel"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "normalizedParentDomainName",
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "normalizedLabel",
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "0x00"
+        ],
+        "bytes": 216,
+        "indexes": [
+          "parentNameAndLabel"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "records.identity",
+          "0x0101010101010101010101010101010101010101010101010101010101010101"
+        ],
+        "bytes": 171,
+        "indexes": [
+          "identityId"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "records.identity",
+          "0x0101010101010101010101010101010101010101010101010101010101010101",
+          "0x00"
+        ],
+        "bytes": 109,
+        "indexes": [
+          "identityId"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "records.identity",
+          "0x0101010101010101010101010101010101010101010101010101010101010101",
+          "0x00",
+          "0x0202020202020202020202020202020202020202020202020202020202020202"
+        ],
+        "bytes": 278,
+        "indexes": [
+          "identityId"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      }
+    ],
+    "processing": [
+      {
+        "code": "signature",
+        "text": "verifying the transition's ECDSA_SECP256K1 signature",
+        "credits": {
+          "newValues": 15000,
+          "knownValues": 15000
+        },
+        "exact": true
+      },
+      {
+        "code": "identity",
+        "text": "fetching the signing key and the balance of the identity",
+        "credits": {
+          "newValues": 18000,
+          "knownValues": 18000
+        },
+        "exact": true
+      },
+      {
+        "code": "writes",
+        "text": "writing the elements: seeks, hashing and rewriting the paths to them in trees of about 1000 entries",
+        "credits": {
+          "newValues": 5238100,
+          "knownValues": 5780440
+        },
+        "exact": false
+      },
+      {
+        "code": "checks",
+        "text": "checking the document does not exist yet and bumping the identity's nonce for the contract",
+        "credits": {
+          "newValues": 70400,
+          "knownValues": 70400
+        },
+        "exact": false
+      }
+    ],
+    "processingCredits": {
+      "newValues": 5341500,
+      "knownValues": 5883840
+    },
+    "contractCharges": [
+      {
+        "kind": "contestFund",
+        "index": "parentNameAndLabel",
+        "credits": 10000000000
+      }
+    ],
+    "refund": {
+      "sameEpoch": {
+        "newValues": 27774318,
+        "knownValues": 27774318
+      },
+      "afterOneYear": {
+        "newValues": 26385228,
+        "knownValues": 26385228
+      }
+    },
+    "totalCredits": {
+      "newValues": 53536500,
+      "knownValues": 38256840
+    },
+    "fields": [
+      {
+        "path": "label",
+        "kind": "string",
+        "optional": false,
+        "present": true,
+        "length": 33,
+        "minLength": 3,
+        "maxLength": 63
+      },
+      {
+        "path": "normalizedLabel",
+        "kind": "string",
+        "optional": false,
+        "present": true,
+        "length": 31,
+        "minLength": 0,
+        "maxLength": 63
+      },
+      {
+        "path": "parentDomainName",
+        "kind": "string",
+        "optional": true,
+        "present": true,
+        "length": 31,
+        "minLength": 0,
+        "maxLength": 63
+      },
+      {
+        "path": "normalizedParentDomainName",
+        "kind": "string",
+        "optional": false,
+        "present": true,
+        "length": 31,
+        "minLength": 0,
+        "maxLength": 63
+      },
+      {
+        "path": "preorderSalt",
+        "kind": "byteArray",
+        "optional": false,
+        "present": true
+      },
+      {
+        "path": "records",
+        "kind": "object",
+        "optional": false,
+        "present": true
+      },
+      {
+        "path": "records.identity",
+        "kind": "identifier",
+        "optional": true,
+        "present": true
+      },
+      {
+        "path": "subdomainRules",
+        "kind": "object",
+        "optional": false,
+        "present": true
+      },
+      {
+        "path": "subdomainRules.allowSubdomains",
+        "kind": "boolean",
+        "optional": false,
+        "present": true
+      }
+    ]
+  },
+  "yappr-likes:tip": {
+    "documentType": "tip",
+    "assumptions": {
+      "existingDocuments": 1000,
+      "signatureKeyType": "ECDSA_SECP256K1",
+      "userFeeIncrease": 0,
+      "feeMultiplierPermille": 1000,
+      "contenders": 0
+    },
+    "documentBytes": 107,
+    "creditsPerByte": 27000,
+    "creditsPerDash": 100000000000,
+    "storage": {
+      "bytes": {
+        "newValues": 2273,
+        "knownValues": 583
+      },
+      "credits": {
+        "newValues": 61371000,
+        "knownValues": 15741000
+      },
+      "primaryBytes": {
+        "newValues": 0,
+        "knownValues": 0
+      },
+      "preallocatedBytes": {
+        "newValues": 0,
+        "knownValues": 0
+      },
+      "expirationBytes": {
+        "newValues": 0,
+        "knownValues": 0
+      }
+    },
+    "indexes": [
+      {
+        "name": "byPost",
+        "sharedWith": [],
+        "sharedBytes": {
+          "newValues": 0,
+          "knownValues": 0
+        },
+        "ownBytes": {
+          "newValues": 1336,
+          "knownValues": 312
+        }
+      },
+      {
+        "name": "byTipperAmount",
+        "sharedWith": [],
+        "sharedBytes": {
+          "newValues": 0,
+          "knownValues": 0
+        },
+        "ownBytes": {
+          "newValues": 937,
+          "knownValues": 271
+        }
+      }
+    ],
+    "elements": [
+      {
+        "role": "indexValue",
+        "path": [
+          "$ownerId",
+          "0x0101010101010101010101010101010101010101010101010101010101010101"
+        ],
+        "bytes": 207,
+        "indexes": [
+          "byTipperAmount"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "nextIndexProperty",
+        "path": [
+          "$ownerId",
+          "0x0101010101010101010101010101010101010101010101010101010101010101",
+          "amount"
+        ],
+        "bytes": 155,
+        "indexes": [
+          "byTipperAmount"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "$ownerId",
+          "0x0101010101010101010101010101010101010101010101010101010101010101",
+          "amount",
+          "0x8000000000000001"
+        ],
+        "bytes": 159,
+        "indexes": [
+          "byTipperAmount"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "$ownerId",
+          "0x0101010101010101010101010101010101010101010101010101010101010101",
+          "amount",
+          "0x8000000000000001",
+          "0x00"
+        ],
+        "bytes": 145,
+        "indexes": [
+          "byTipperAmount"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "$ownerId",
+          "0x0101010101010101010101010101010101010101010101010101010101010101",
+          "amount",
+          "0x8000000000000001",
+          "0x00",
+          "0x0101010101010101010101010101010101010101010101010101010101010101"
+        ],
+        "bytes": 271,
+        "indexes": [
+          "byTipperAmount"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "postId",
+          "0x0101010101010101010101010101010101010101010101010101010101010101"
+        ],
+        "bytes": 257,
+        "indexes": [
+          "byPost"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "postId",
+          "0x0101010101010101010101010101010101010101010101010101010101010101",
+          "0xff00",
+          "0x00000000000000000101010101010101010101010101010101010101010101010101010101010101"
+        ],
+        "bytes": 286,
+        "indexes": [
+          "byPost"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false,
+        "rankingAxis": "count"
+      },
+      {
+        "role": "indexValue",
+        "path": [
+          "postId",
+          "0x0101010101010101010101010101010101010101010101010101010101010101",
+          "0xff01",
+          "0x00000000000000000101010101010101010101010101010101010101010101010101010101010101"
+        ],
+        "bytes": 286,
+        "indexes": [
+          "byPost"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false,
+        "rankingAxis": "sum"
+      },
+      {
+        "role": "terminal",
+        "path": [
+          "postId",
+          "0x0101010101010101010101010101010101010101010101010101010101010101",
+          "0x00"
+        ],
+        "bytes": 195,
+        "indexes": [
+          "byPost"
+        ],
+        "ifAbsent": true,
+        "writtenWhenValuesKnown": false,
+        "ephemeral": false,
+        "expiration": false
+      },
+      {
+        "role": "member",
+        "path": [
+          "postId",
+          "0x0101010101010101010101010101010101010101010101010101010101010101",
+          "0x00",
+          "0x0101010101010101010101010101010101010101010101010101010101010101"
+        ],
+        "bytes": 312,
+        "indexes": [
+          "byPost"
+        ],
+        "ifAbsent": false,
+        "writtenWhenValuesKnown": true,
+        "ephemeral": false,
+        "expiration": false
+      }
+    ],
+    "processing": [
+      {
+        "code": "signature",
+        "text": "verifying the transition's ECDSA_SECP256K1 signature",
+        "credits": {
+          "newValues": 15000,
+          "knownValues": 15000
+        },
+        "exact": true
+      },
+      {
+        "code": "identity",
+        "text": "fetching the signing key and the balance of the identity",
+        "credits": {
+          "newValues": 18000,
+          "knownValues": 18000
+        },
+        "exact": true
+      },
+      {
+        "code": "writes",
+        "text": "writing the elements: seeks, hashing and rewriting the paths to them in trees of about 1000 entries",
+        "credits": {
+          "newValues": 5957020,
+          "knownValues": 4250520
+        },
+        "exact": false
+      },
+      {
+        "code": "checks",
+        "text": "checking the document does not exist yet and bumping the identity's nonce for the contract",
+        "credits": {
+          "newValues": 70400,
+          "knownValues": 70400
+        },
+        "exact": false
+      }
+    ],
+    "processingCredits": {
+      "newValues": 6060420,
+      "knownValues": 4353920
+    },
+    "contractCharges": [],
+    "refund": {
+      "sameEpoch": {
+        "newValues": 61293287,
+        "knownValues": 15720404
+      },
+      "afterOneYear": {
+        "newValues": 58227835,
+        "knownValues": 14934151
+      }
+    },
+    "totalCredits": {
+      "newValues": 67431420,
+      "knownValues": 20094920
+    },
+    "fields": [
+      {
+        "path": "postId",
+        "kind": "identifier",
+        "optional": false,
+        "present": true
+      },
+      {
+        "path": "amount",
+        "kind": "integer",
+        "optional": false,
+        "present": true
+      }
+    ]
+  }
+}
