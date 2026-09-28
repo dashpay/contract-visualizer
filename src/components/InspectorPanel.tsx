@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import type { Change, ContractDiff } from '../model/diff';
+import { ChangeBody } from './ChangesPanel';
 import type { Selection } from '../flow/selection';
 import type { ContractModel, Entity, Field, RefExpr, RefTarget, Reference, Relationship } from '../model/types';
 import { relationshipFields } from '../model/relationships';
@@ -21,6 +23,34 @@ interface Props {
   onToggleEdge: (id: string) => void;
   onOpenContract: (contractId: string) => void;
   onClose: () => void;
+  /** Compare mode: show the change behind the selected element. */
+  diff?: ContractDiff;
+}
+
+function changeFor(diff: ContractDiff | undefined, selection: Selection): Change | undefined {
+  if (!diff || !selection) return undefined;
+  const id =
+    selection.kind === 'field'
+      ? `field:${selection.entity.name}:${selection.field.path}`
+      : selection.kind === 'index'
+        ? `index:${selection.entity.name}:${selection.index.name}`
+        : selection.kind === 'constraint'
+          ? `rule:${selection.entity.name}:${selection.name}`
+          : selection.kind === 'entity'
+            ? `type:${selection.entity.name}`
+            : undefined;
+  return id ? diff.changes.find((c) => c.id === id) : undefined;
+}
+
+const KIND_LABEL = { added: 'added in head', removed: 'removed in head', changed: 'changed' } as const;
+
+function ChangeSection({ change }: { change: Change }) {
+  return (
+    <div className={`cv-inspector-change cv-change-${change.kind}`}>
+      <div className="cv-inspector-sub">change: {KIND_LABEL[change.kind]}</div>
+      <ChangeBody change={change} />
+    </div>
+  );
 }
 
 function Value({ v }: { v: unknown }) {
@@ -285,14 +315,17 @@ function RelationshipView({
   );
 }
 
-export function InspectorPanel({ selection, model, hiddenEdges, onToggleEdge, onOpenContract, onClose }: Props) {
+export function InspectorPanel({ selection, model, hiddenEdges, onToggleEdge, onOpenContract, onClose, diff }: Props) {
   if (!selection) return null;
+  const change = changeFor(diff, selection);
 
   return (
     <aside className="cv-inspector" aria-label="Details">
       <button type="button" className="cv-inspector-close" onClick={onClose} aria-label="Close">
         ✕
       </button>
+
+      {change && <ChangeSection change={change} />}
 
       {selection.kind === 'entity' && <EntityView entity={selection.entity} model={model} />}
 

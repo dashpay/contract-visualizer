@@ -60,6 +60,41 @@ Every keyword links to its chapter of [The Dash Platform Book](https://dashpay.g
 - **Property constraints** get their own compartment, rendered as formulas: `rewardSplit.leader + rewardSplit.equal + rewardSplit.actions = 100`.
 - **Contract metadata** (top-left): id, owner, version, timestamps, keywords, description, config, **moderation** (lists, who moderates, election windows, moderated types), `schemaDefs`, and every type's chips.
 
+## Compare two versions (contract updates)
+
+**Compare** in the toolbar diagrams two versions of a contract at once: the union of both,
+with added parts in green (`+`), removed parts struck out in red (`−`) and changed parts in
+amber (`~`), for document types, properties, indexes, property constraints and reference
+edges. Unchanged types are dimmed (or hidden with *hide unchanged types*).
+
+- **Base** and **head** are each a registered contract id (fetched from the toolbar's network),
+  a link to a contract JSON file, `example:<key>`, or empty for none.
+- **From a GitHub pull request:** paste the PR link and pick one of its changed JSON files.
+  Base is the file at the merge base, head at the PR head, as in GitHub's *Files changed* tab.
+  This uses the public GitHub API (60 requests an hour without signing in; a PR takes three or four).
+- Deep links: `?pr=https://github.com/<owner>/<repo>/pull/<n>&file=<path>` or
+  `?base=<source>&head=<source>` (plus `network` / `devnet` when a source is a contract id).
+  A typical update review: `?base=<registered contract id>&head=<link to the PR's JSON>&network=testnet`.
+
+The **Changes** panel lists every change as *before → after*, grouped by document type.
+Clicking a change centers its type and opens it in the inspector. Each change is judged by
+the update rule of its keyword in [The Dash Platform Book](https://dashpay.github.io/platform/contract-keywords.html)
+(the *On update* row of each keyword's table):
+
+- **✕ refused**: a contract update with this change would be refused, with the consensus
+  error the book names (`IncompatibleDocumentTypeSchemaError` 10246, `DocumentTypeUpdateError`
+  40212, `DataContractInvalidIndexDefinitionUpdateError` 10217,
+  `DataContractInvalidRequiredFieldsUpdateError` 10276, `DataContractConfigUpdateError` 40002,
+  `InvalidDataContractVersionError` 10212, ...) and a link to the rule;
+- **? check**: allowed unless something the schema text does not settle, such as a new integer
+  bound that changes how the integer is stored, or a changed `schemaDefs` entry that must stay compatible.
+
+These verdicts only matter for an **update** of the base. Registering the head as a new contract
+is not bound by them. They mirror the book, not the validator. The platform's own check is
+`DataContract::validate_update` in rs-dpp, which the wasm SDK does not expose yet. Config
+defaults are filled in on both sides, so a fetched contract (which writes every config key)
+and a file (which usually leaves defaults out) compare equal.
+
 ## Examples
 
 Bundled, offline, and each one passes full validation by the protocol version 14 parser
@@ -121,6 +156,7 @@ One-time: repo settings → **Pages → Source: GitHub Actions**.
 src/
   config.ts              # contract id / example / link + network + view resolution (URL / localStorage / env)
   urlSource.ts           # ?url= and pasted links: GitHub blob -> raw, fetch + parse
+  github.ts              # a PR's changed JSON files at merge base and head (GitHub REST API)
   sdk/
     client.ts            # Evo SDK trusted connection, memoised per network
     contract.ts          # fetch contract (toJSON) -> ContractModel, or a bundled example
@@ -131,6 +167,8 @@ src/
     relationships.ts     # declared + inferred relationships
     constraints.ts       # propertyConstraints -> formulas
     describe.ts          # keyword chips and plain-language descriptions
+    diff.ts              # compare two versions: changes, statuses, the union model
+    updateRules.ts       # each keyword's update rule, per the book, with its error code
     types.ts
     fixtures/            # the SDK's reading of the examples' references
   flow/
@@ -140,7 +178,8 @@ src/
     ExternalNode.tsx     # identity / key / contract / token / other contract's type
     Canvas.tsx           # React Flow canvas, legend, export/re-layout panel
     selection.ts, exportImage.ts
-  components/            # Toolbar, InspectorPanel, ContractMetaPanel, PasteContractModal
+  components/            # Toolbar, InspectorPanel, ContractMetaPanel, PasteContractModal,
+                         # CompareModal, ChangesPanel
   App.tsx, main.tsx, styles.css
 scripts/
   validate-examples.mjs  # examples through DataContract.fromJSON(…, true, 14)

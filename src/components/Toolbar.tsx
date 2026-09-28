@@ -14,6 +14,7 @@ interface Props {
   onLoad: (contractId: string) => void;
   onExample: (key: string) => void;
   onPaste: () => void;
+  onCompare: () => void;
   view: ViewKind;
   onView: (v: ViewKind) => void;
   status: 'idle' | 'loading' | 'ready' | 'error';
@@ -32,6 +33,7 @@ export function Toolbar({
   onLoad,
   onExample,
   onPaste,
+  onCompare,
   view,
   onView,
   status,
@@ -88,6 +90,9 @@ export function Toolbar({
         </button>
         <button type="button" onClick={onPaste}>
           Paste JSON
+        </button>
+        <button type="button" onClick={onCompare} title="Compare two versions of a contract">
+          Compare
         </button>
         <select
           value={example}
