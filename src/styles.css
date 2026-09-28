@@ -437,3 +437,37 @@ button { font: inherit; cursor: pointer; }
 .cv-file-added { color: var(--diff-added); }
 .cv-file-removed { color: var(--diff-removed); }
 .cv-file-modified, .cv-file-renamed, .cv-file-changed { color: var(--diff-changed); }
+
+/* GroveDB layout panel */
+.cv-layout-button { margin: 8px 0 4px; border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+.cv-layout { width: min(1000px, 96vw); max-height: 92vh; overflow-y: auto; }
+.cv-layout code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9em; background: var(--surface-2); padding: 0 3px; border-radius: 3px; }
+.cv-layout a { color: var(--accent); }
+.cv-layout-legend { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
+.cv-layout-summary { font-size: 12.5px; color: var(--text-muted); margin: 6px 0; }
+.cv-layout-tree { list-style: none; margin: 0; padding-left: 18px; border-left: 1px dashed var(--border-strong); }
+.cv-layout-root { padding-left: 0; border-left: none; }
+.cv-layout-item { margin: 1px 0; }
+.cv-layout-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 2px 4px; border-radius: 4px; font-size: 12.5px; }
+.cv-layout-row:hover { background: var(--surface-2); }
+.cv-layout-caret { background: none; border: none; color: var(--text-muted); width: 16px; padding: 0; cursor: pointer; }
+.cv-layout-caret:disabled { cursor: default; }
+.cv-layout-prefix { font-size: 11.5px; color: var(--text-muted); font-style: italic; }
+.cv-layout-key { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.cv-layout-key.family { color: var(--text-muted); }
+.cv-layout-kind {
+  font-size: 11px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  padding: 0 5px; border-radius: 3px; border: 1px solid currentColor; white-space: nowrap;
+}
+.cv-kind-plain { color: var(--tone-storage); }
+.cv-kind-count { color: var(--ref-document); }
+.cv-kind-sum { color: var(--ref-identity); }
+.cv-kind-countSum { color: var(--ref-key); }
+.cv-kind-indexed { color: var(--ref-contract); }
+.cv-kind-value { color: var(--tone-neutral); border-style: dashed; }
+.cv-layout-wrapper { font-size: 11px; color: var(--diff-changed); border: 1px solid currentColor; border-radius: 3px; padding: 0 5px; }
+.cv-layout-ranked { font-size: 11px; color: var(--ref-contract); }
+.cv-layout-indexes { font-size: 11px; color: var(--text-muted); }
+.cv-layout-link { margin-left: auto; text-decoration: none; font-size: 12px; }
+.cv-layout-notes { margin: 0 0 2px 26px; padding: 0; list-style: none; font-size: 11.5px; color: var(--text-muted); }
+.cv-layout-notes li::before { content: '· '; }

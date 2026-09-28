@@ -1,0 +1,732 @@
+{
+  "marketplace:listing": {
+    "documentType": "listing",
+    "root": {
+      "key": {
+        "kind": "fixed",
+        "hex": "6c697374696e67",
+        "label": "listing"
+      },
+      "role": "documentType",
+      "structureNode": "contracts.contract.documents.document_type",
+      "element": "Tree",
+      "rankedAxes": [],
+      "indexes": [
+        "byCategoryPrice",
+        "byShop",
+        "newListings"
+      ],
+      "notes": [],
+      "children": [
+        {
+          "key": {
+            "kind": "fixed",
+            "hex": "00",
+            "label": "PrimaryKey"
+          },
+          "role": "primaryKey",
+          "structureNode": "contracts.contract.documents.document_type.primary_key",
+          "element": "CountTree",
+          "rankedAxes": [],
+          "indexes": [],
+          "notes": [],
+          "children": [
+            {
+              "key": {
+                "kind": "documentId"
+              },
+              "role": "document",
+              "structureNode": "contracts.contract.documents.document_type.primary_key.document",
+              "element": "Item",
+              "rankedAxes": [],
+              "indexes": [],
+              "notes": [],
+              "children": []
+            }
+          ]
+        },
+        {
+          "key": {
+            "kind": "fixed",
+            "hex": "246372656174656441742338363430302333363030",
+            "label": "$createdAt#86400#3600"
+          },
+          "role": "indexProperty",
+          "structureNode": "contracts.contract.documents.document_type.index_property",
+          "element": "Tree",
+          "rankedAxes": [],
+          "indexes": [
+            "newListings"
+          ],
+          "notes": [],
+          "children": [
+            {
+              "key": {
+                "kind": "timeRangeBucket",
+                "property": "$createdAt",
+                "rangeSeconds": 86400,
+                "stepSeconds": 3600,
+                "phaseSeconds": 0
+              },
+              "role": "indexValue",
+              "structureNode": "contracts.contract.documents.document_type.index_property.value",
+              "element": "CountTree",
+              "rankedAxes": [],
+              "indexes": [
+                "newListings"
+              ],
+              "notes": [
+                {
+                  "code": "timeRangeOverlap",
+                  "text": "a document lands in every window containing its time: up to 24"
+                }
+              ],
+              "children": [
+                {
+                  "key": {
+                    "kind": "fixed",
+                    "hex": "00",
+                    "label": "Members"
+                  },
+                  "role": "terminal",
+                  "structureNode": "contracts.contract.documents.document_type.index_property.value.members",
+                  "element": "CountTree",
+                  "rankedAxes": [],
+                  "indexes": [
+                    "newListings"
+                  ],
+                  "notes": [],
+                  "children": [
+                    {
+                      "key": {
+                        "kind": "documentId"
+                      },
+                      "role": "member",
+                      "structureNode": "contracts.contract.documents.document_type.index_property.value.members.member",
+                      "element": "Reference",
+                      "rankedAxes": [],
+                      "indexes": [],
+                      "notes": [],
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": {
+            "kind": "fixed",
+            "hex": "63617465676f7279",
+            "label": "category"
+          },
+          "role": "indexProperty",
+          "structureNode": "contracts.contract.documents.document_type.index_property",
+          "element": "Tree",
+          "rankedAxes": [],
+          "indexes": [
+            "byCategoryPrice"
+          ],
+          "notes": [],
+          "children": [
+            {
+              "key": {
+                "kind": "propertyValue",
+                "property": "category"
+              },
+              "role": "indexValue",
+              "structureNode": "contracts.contract.documents.document_type.index_property.value",
+              "element": "Tree",
+              "rankedAxes": [],
+              "indexes": [
+                "byCategoryPrice"
+              ],
+              "notes": [],
+              "children": [
+                {
+                  "key": {
+                    "kind": "fixed",
+                    "hex": "7072696365",
+                    "label": "price"
+                  },
+                  "role": "nextIndexProperty",
+                  "structureNode": "contracts.contract.documents.document_type.index_property.value.next_property",
+                  "element": "Tree",
+                  "rankedAxes": [],
+                  "indexes": [
+                    "byCategoryPrice"
+                  ],
+                  "notes": [],
+                  "children": [
+                    {
+                      "key": {
+                        "kind": "propertyValue",
+                        "property": "price"
+                      },
+                      "role": "indexValue",
+                      "structureNode": "contracts.contract.documents.document_type.index_property.value",
+                      "element": "Tree",
+                      "rankedAxes": [],
+                      "indexes": [
+                        "byCategoryPrice"
+                      ],
+                      "notes": [],
+                      "children": [
+                        {
+                          "key": {
+                            "kind": "fixed",
+                            "hex": "00",
+                            "label": "Members"
+                          },
+                          "role": "terminal",
+                          "structureNode": "contracts.contract.documents.document_type.index_property.value.members",
+                          "element": "Tree",
+                          "rankedAxes": [],
+                          "indexes": [
+                            "byCategoryPrice"
+                          ],
+                          "notes": [],
+                          "children": [
+                            {
+                              "key": {
+                                "kind": "documentId"
+                              },
+                              "role": "member",
+                              "structureNode": "contracts.contract.documents.document_type.index_property.value.members.member",
+                              "element": "Reference",
+                              "rankedAxes": [],
+                              "indexes": [],
+                              "notes": [],
+                              "children": []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": {
+            "kind": "fixed",
+            "hex": "73686f704964",
+            "label": "shopId"
+          },
+          "role": "indexProperty",
+          "structureNode": "contracts.contract.documents.document_type.index_property",
+          "element": "Tree",
+          "rankedAxes": [],
+          "indexes": [
+            "byShop"
+          ],
+          "notes": [],
+          "children": [
+            {
+              "key": {
+                "kind": "propertyValue",
+                "property": "shopId"
+              },
+              "role": "indexValue",
+              "structureNode": "contracts.contract.documents.document_type.index_property.value",
+              "element": "Tree",
+              "rankedAxes": [],
+              "indexes": [
+                "byShop"
+              ],
+              "notes": [],
+              "children": [
+                {
+                  "key": {
+                    "kind": "fixed",
+                    "hex": "24637265617465644174",
+                    "label": "$createdAt"
+                  },
+                  "role": "nextIndexProperty",
+                  "structureNode": "contracts.contract.documents.document_type.index_property.value.next_property",
+                  "element": "Tree",
+                  "rankedAxes": [],
+                  "indexes": [
+                    "byShop"
+                  ],
+                  "notes": [],
+                  "children": [
+                    {
+                      "key": {
+                        "kind": "propertyValue",
+                        "property": "$createdAt"
+                      },
+                      "role": "indexValue",
+                      "structureNode": "contracts.contract.documents.document_type.index_property.value",
+                      "element": "CountTree",
+                      "rankedAxes": [],
+                      "indexes": [
+                        "byShop"
+                      ],
+                      "notes": [],
+                      "children": [
+                        {
+                          "key": {
+                            "kind": "fixed",
+                            "hex": "00",
+                            "label": "Members"
+                          },
+                          "role": "terminal",
+                          "structureNode": "contracts.contract.documents.document_type.index_property.value.members",
+                          "element": "CountTree",
+                          "rankedAxes": [],
+                          "indexes": [
+                            "byShop"
+                          ],
+                          "notes": [],
+                          "children": [
+                            {
+                              "key": {
+                                "kind": "documentId"
+                              },
+                              "role": "member",
+                              "structureNode": "contracts.contract.documents.document_type.index_property.value.members.member",
+                              "element": "Reference",
+                              "rankedAxes": [],
+                              "indexes": [],
+                              "notes": [],
+                              "children": []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "yappr-likes:tip": {
+    "documentType": "tip",
+    "root": {
+      "key": {
+        "kind": "fixed",
+        "hex": "746970",
+        "label": "tip"
+      },
+      "role": "documentType",
+      "structureNode": "contracts.contract.documents.document_type",
+      "element": "Tree",
+      "rankedAxes": [],
+      "indexes": [
+        "byPost",
+        "byTipperAmount"
+      ],
+      "notes": [
+        {
+          "code": "indexOnly",
+          "text": "indexOnly: documents are not stored whole; the index entries are the rows"
+        }
+      ],
+      "children": [
+        {
+          "key": {
+            "kind": "fixed",
+            "hex": "246f776e65724964",
+            "label": "$ownerId"
+          },
+          "role": "indexProperty",
+          "structureNode": "contracts.contract.documents.document_type.index_property",
+          "element": "Tree",
+          "rankedAxes": [],
+          "indexes": [
+            "byTipperAmount"
+          ],
+          "notes": [],
+          "children": [
+            {
+              "key": {
+                "kind": "propertyValue",
+                "property": "$ownerId"
+              },
+              "role": "indexValue",
+              "structureNode": "contracts.contract.documents.document_type.index_property.value",
+              "element": "Tree",
+              "rankedAxes": [],
+              "indexes": [
+                "byTipperAmount"
+              ],
+              "notes": [],
+              "children": [
+                {
+                  "key": {
+                    "kind": "fixed",
+                    "hex": "616d6f756e74",
+                    "label": "amount"
+                  },
+                  "role": "nextIndexProperty",
+                  "structureNode": "contracts.contract.documents.document_type.index_property.value.next_property",
+                  "element": "Tree",
+                  "rankedAxes": [],
+                  "indexes": [
+                    "byTipperAmount"
+                  ],
+                  "notes": [],
+                  "children": [
+                    {
+                      "key": {
+                        "kind": "propertyValue",
+                        "property": "amount"
+                      },
+                      "role": "indexValue",
+                      "structureNode": "contracts.contract.documents.document_type.index_property.value",
+                      "element": "Tree",
+                      "rankedAxes": [],
+                      "indexes": [
+                        "byTipperAmount"
+                      ],
+                      "notes": [],
+                      "children": [
+                        {
+                          "key": {
+                            "kind": "fixed",
+                            "hex": "00",
+                            "label": "Members"
+                          },
+                          "role": "terminal",
+                          "structureNode": "contracts.contract.documents.document_type.index_property.value.members",
+                          "element": "Tree",
+                          "rankedAxes": [],
+                          "indexes": [
+                            "byTipperAmount"
+                          ],
+                          "notes": [],
+                          "children": [
+                            {
+                              "key": {
+                                "kind": "memberKey",
+                                "components": [
+                                  "postId"
+                                ]
+                              },
+                              "role": "member",
+                              "structureNode": "contracts.contract.documents.document_type.index_property.value.members.member",
+                              "element": "Item",
+                              "rankedAxes": [],
+                              "indexes": [],
+                              "notes": [],
+                              "children": []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": {
+            "kind": "fixed",
+            "hex": "706f73744964",
+            "label": "postId"
+          },
+          "role": "indexProperty",
+          "structureNode": "contracts.contract.documents.document_type.index_property",
+          "element": "ProvableCountProvableSumIndexedTree",
+          "rankedAxes": [
+            "count",
+            "sum"
+          ],
+          "indexes": [
+            "byPost"
+          ],
+          "notes": [],
+          "children": [
+            {
+              "key": {
+                "kind": "propertyValue",
+                "property": "postId"
+              },
+              "role": "indexValue",
+              "structureNode": "contracts.contract.documents.document_type.index_property.value",
+              "element": "ProvableCountProvableSumTree",
+              "rankedAxes": [],
+              "indexes": [
+                "byPost"
+              ],
+              "notes": [],
+              "children": [
+                {
+                  "key": {
+                    "kind": "fixed",
+                    "hex": "00",
+                    "label": "Members"
+                  },
+                  "role": "terminal",
+                  "structureNode": "contracts.contract.documents.document_type.index_property.value.members",
+                  "element": "ProvableCountProvableSumTree",
+                  "rankedAxes": [],
+                  "indexes": [
+                    "byPost"
+                  ],
+                  "notes": [],
+                  "children": [
+                    {
+                      "key": {
+                        "kind": "memberKey",
+                        "components": [
+                          "$ownerId"
+                        ]
+                      },
+                      "role": "member",
+                      "structureNode": "contracts.contract.documents.document_type.index_property.value.members.member",
+                      "element": "ItemWithSumItem",
+                      "rankedAxes": [],
+                      "indexes": [],
+                      "notes": [],
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "dpns:domain": {
+    "documentType": "domain",
+    "root": {
+      "key": {
+        "kind": "fixed",
+        "hex": "646f6d61696e",
+        "label": "domain"
+      },
+      "role": "documentType",
+      "structureNode": "contracts.contract.documents.document_type",
+      "element": "Tree",
+      "rankedAxes": [],
+      "indexes": [
+        "identityId",
+        "parentNameAndLabel"
+      ],
+      "notes": [],
+      "children": [
+        {
+          "key": {
+            "kind": "fixed",
+            "hex": "00",
+            "label": "PrimaryKey"
+          },
+          "role": "primaryKey",
+          "structureNode": "contracts.contract.documents.document_type.primary_key",
+          "element": "Tree",
+          "rankedAxes": [],
+          "indexes": [],
+          "notes": [],
+          "children": [
+            {
+              "key": {
+                "kind": "documentId"
+              },
+              "role": "document",
+              "structureNode": "contracts.contract.documents.document_type.primary_key.document",
+              "element": "Item",
+              "rankedAxes": [],
+              "indexes": [],
+              "notes": [],
+              "children": []
+            }
+          ]
+        },
+        {
+          "key": {
+            "kind": "fixed",
+            "hex": "6e6f726d616c697a6564506172656e74446f6d61696e4e616d65",
+            "label": "normalizedParentDomainName"
+          },
+          "role": "indexProperty",
+          "structureNode": "contracts.contract.documents.document_type.index_property",
+          "element": "Tree",
+          "rankedAxes": [],
+          "indexes": [
+            "parentNameAndLabel"
+          ],
+          "notes": [],
+          "children": [
+            {
+              "key": {
+                "kind": "propertyValue",
+                "property": "normalizedParentDomainName"
+              },
+              "role": "indexValue",
+              "structureNode": "contracts.contract.documents.document_type.index_property.value",
+              "element": "Tree",
+              "rankedAxes": [],
+              "indexes": [
+                "parentNameAndLabel"
+              ],
+              "notes": [],
+              "children": [
+                {
+                  "key": {
+                    "kind": "fixed",
+                    "hex": "6e6f726d616c697a65644c6162656c",
+                    "label": "normalizedLabel"
+                  },
+                  "role": "nextIndexProperty",
+                  "structureNode": "contracts.contract.documents.document_type.index_property.value.next_property",
+                  "element": "Tree",
+                  "rankedAxes": [],
+                  "indexes": [
+                    "parentNameAndLabel"
+                  ],
+                  "notes": [],
+                  "children": [
+                    {
+                      "key": {
+                        "kind": "propertyValue",
+                        "property": "normalizedLabel"
+                      },
+                      "role": "indexValue",
+                      "structureNode": "contracts.contract.documents.document_type.index_property.value",
+                      "element": "Tree",
+                      "rankedAxes": [],
+                      "indexes": [
+                        "parentNameAndLabel"
+                      ],
+                      "notes": [],
+                      "children": [
+                        {
+                          "key": {
+                            "kind": "fixed",
+                            "hex": "00",
+                            "label": "Unique reference"
+                          },
+                          "role": "terminal",
+                          "structureNode": "contracts.contract.documents.document_type.index_property.value.members",
+                          "element": "Reference",
+                          "rankedAxes": [],
+                          "indexes": [
+                            "parentNameAndLabel"
+                          ],
+                          "notes": [],
+                          "alternative": {
+                            "when": "an indexed value of the document is null",
+                            "node": {
+                              "key": {
+                                "kind": "fixed",
+                                "hex": "00",
+                                "label": "Members"
+                              },
+                              "role": "terminal",
+                              "structureNode": "contracts.contract.documents.document_type.index_property.value.members",
+                              "element": "Tree",
+                              "rankedAxes": [],
+                              "indexes": [
+                                "parentNameAndLabel"
+                              ],
+                              "notes": [],
+                              "children": [
+                                {
+                                  "key": {
+                                    "kind": "documentId"
+                                  },
+                                  "role": "member",
+                                  "structureNode": "contracts.contract.documents.document_type.index_property.value.members.member",
+                                  "element": "Reference",
+                                  "rankedAxes": [],
+                                  "indexes": [],
+                                  "notes": [],
+                                  "children": []
+                                }
+                              ]
+                            }
+                          },
+                          "children": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": {
+            "kind": "fixed",
+            "hex": "7265636f7264732e6964656e74697479",
+            "label": "records.identity"
+          },
+          "role": "indexProperty",
+          "structureNode": "contracts.contract.documents.document_type.index_property",
+          "element": "Tree",
+          "rankedAxes": [],
+          "indexes": [
+            "identityId"
+          ],
+          "notes": [],
+          "children": [
+            {
+              "key": {
+                "kind": "propertyValue",
+                "property": "records.identity"
+              },
+              "role": "indexValue",
+              "structureNode": "contracts.contract.documents.document_type.index_property.value",
+              "element": "Tree",
+              "rankedAxes": [],
+              "indexes": [
+                "identityId"
+              ],
+              "notes": [],
+              "children": [
+                {
+                  "key": {
+                    "kind": "fixed",
+                    "hex": "00",
+                    "label": "Members"
+                  },
+                  "role": "terminal",
+                  "structureNode": "contracts.contract.documents.document_type.index_property.value.members",
+                  "element": "Tree",
+                  "rankedAxes": [],
+                  "indexes": [
+                    "identityId"
+                  ],
+                  "notes": [
+                    {
+                      "code": "notNullSearchable",
+                      "text": "nullSearchable is false: a document whose indexed values are all null writes no entry here, though the value trees above are written with empty keys"
+                    }
+                  ],
+                  "children": [
+                    {
+                      "key": {
+                        "kind": "documentId"
+                      },
+                      "role": "member",
+                      "structureNode": "contracts.contract.documents.document_type.index_property.value.members.member",
+                      "element": "Reference",
+                      "rankedAxes": [],
+                      "indexes": [],
+                      "notes": [],
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

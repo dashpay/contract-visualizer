@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useEdgesState, useNodesState, type Edge } from '@xyflow/react';
 import { loadConfig, saveOverride, type Network, type ViewKind } from './config';
-import { loadContractJson, loadContractModel } from './sdk/contract';
+import { loadContractJson } from './sdk/contract';
 import { resetConnections } from './sdk/pool';
 import { modelFromPastedJson } from './model/introspect';
 import { withRelationships } from './model/relationships';
@@ -15,6 +15,7 @@ import { InspectorPanel } from './components/InspectorPanel';
 import { PasteContractModal } from './components/PasteContractModal';
 import { ContractMetaPanel } from './components/ContractMetaPanel';
 import { ChangesPanel } from './components/ChangesPanel';
+import { LayoutPanel } from './components/LayoutPanel';
 import { CompareModal, type CompareSpec } from './components/CompareModal';
 import { EXAMPLES, exampleId, exampleKey } from './examples';
 import { fileLabel, looksLikeUrl, urlFromSource, urlSourceId } from './urlSource';
@@ -71,6 +72,10 @@ export default function App() {
   const [compareError, setCompareError] = useState<string | undefined>(undefined);
   const [compareInitialPr, setCompareInitialPr] = useState<string | undefined>(undefined);
   const [focus, setFocus] = useState<{ id: string; n: number } | undefined>(undefined);
+  const [layoutView, setLayoutView] = useState<{ documentType: string; json: unknown } | null>(null);
+  // The JSON of the contract on screen (both sides in compare mode), for the GroveDB layout panel.
+  const contractJsonRef = useRef<unknown>(null);
+  const compareJsonRef = useRef<{ base: unknown; head: unknown } | null>(null);
 
   const [nodes, setNodes, onNodesChange] = useNodesState<DiagramNode>([]);
   const [edges, setEdges] = useEdgesState<Edge>([]);
@@ -126,7 +131,9 @@ export default function App() {
   );
 
   const applyModel = useCallback(
-    async (m: ContractModel, source: string, net: Network, devnet: string) => {
+    async (m: ContractModel, source: string, net: Network, devnet: string, json: unknown) => {
+      contractJsonRef.current = json;
+      compareJsonRef.current = null;
       setDiff(null);
       diffRef.current = null;
       setCompareSpec(null);
@@ -148,9 +155,10 @@ export default function App() {
       setStatus('loading');
       setErrorMsg(null);
       try {
-        const m = await loadContractModel({ network: net, contractId: source, devnetName: devnet || undefined, view: viewRef.current });
+        const json = await loadContractJson({ network: net, contractId: source, devnetName: devnet || undefined, view: viewRef.current });
+        const m = withRelationships(modelFromPastedJson(json));
         saveOverride({ network: net, contractId: source, devnetName: devnet || undefined });
-        await applyModel(m, source, net, devnet);
+        await applyModel(m, source, net, devnet, json);
       } catch (err) {
         setErrorMsg(err instanceof Error ? err.message : String(err));
         setStatus('error');
@@ -172,6 +180,7 @@ export default function App() {
             : Promise.resolve(EMPTY_CONTRACT);
         const [b, h] = await Promise.all([load1(spec.base), load1(spec.head)]);
         const d = diffContracts(b, h);
+        compareJsonRef.current = { base: b, head: h };
         setDiff(d);
         diffRef.current = d;
         setCompareSpec(spec);
@@ -278,7 +287,7 @@ export default function App() {
     const spec = compareSpec;
     if (!d) return;
     const headSource = spec?.head ? toSourceId(spec.head) : '';
-    void applyModel(d.head, headSource, network, devnetName);
+    void applyModel(d.head, headSource, network, devnetName, compareJsonRef.current?.head ?? null);
     if (spec?.head) setContractInput(spec.head);
   }, [applyModel, compareSpec, network, devnetName]);
 
@@ -296,6 +305,18 @@ export default function App() {
     [load, network, devnetName],
   );
 
+  /** Open the GroveDB layout of a document type: the head's version in compare mode, else the base's. */
+  const openLayout = useCallback((documentType: string) => {
+    const compare = compareJsonRef.current;
+    const d = diffRef.current;
+    const json = compare && d
+      ? d.head.entities.some((e) => e.name === documentType)
+        ? compare.head
+        : compare.base
+      : contractJsonRef.current;
+    if (json) setLayoutView({ documentType, json });
+  }, []);
+
   const onNetwork = useCallback((n: Network) => {
     setNetwork(n);
     resetConnections();
@@ -308,7 +329,7 @@ export default function App() {
         const m = withRelationships(modelFromPastedJson(parsed));
         setPasteOpen(false);
         setPasteError(undefined);
-        void applyModel(m, '', network, devnetName);
+        void applyModel(m, '', network, devnetName, parsed);
       } catch (err) {
         setPasteError(err instanceof Error ? err.message : String(err));
       }
@@ -460,10 +481,14 @@ export default function App() {
               onOpenContract={onOpenContract}
               onClose={() => setSelection(null)}
               diff={diff ?? undefined}
+              onShowLayout={openLayout}
             />
           )}
         </div>
 
+        {layoutView && (
+          <LayoutPanel documentType={layoutView.documentType} contractJson={layoutView.json} onClose={() => setLayoutView(null)} />
+        )}
         {pasteOpen && (
           <PasteContractModal onApply={applyPaste} onClose={() => setPasteOpen(false)} error={pasteError} />
         )}

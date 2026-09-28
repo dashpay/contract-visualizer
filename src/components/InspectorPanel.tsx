@@ -25,6 +25,8 @@ interface Props {
   onClose: () => void;
   /** Compare mode: show the change behind the selected element. */
   diff?: ContractDiff;
+  /** Open the GroveDB layout panel for a document type. */
+  onShowLayout?: (documentType: string) => void;
 }
 
 function changeFor(diff: ContractDiff | undefined, selection: Selection): Change | undefined {
@@ -248,7 +250,15 @@ function FieldView({ entity, field }: { entity: Entity; field: Field }) {
   );
 }
 
-function EntityView({ entity, model }: { entity: Entity; model: ContractModel }) {
+function EntityView({
+  entity,
+  model,
+  onShowLayout,
+}: {
+  entity: Entity;
+  model: ContractModel;
+  onShowLayout?: (documentType: string) => void;
+}) {
   const chips = documentTypeChips(entity);
   const shown = new Set(['ttl', 'indexOnly', 'documentsMutable', 'canBeDeleted', 'canBeDeletedByModerators', 'canBeDeletedByModeratorsFor', 'creationRestrictionMode', 'transferable', 'tradeMode', 'documentsKeepHistory', 'keepsTransferHistory', 'keepsPurchaseHistory', 'keepsPricingHistory', 'actionFees', 'tokenCost', 'documentsCountable', 'documentsSummable', 'documentsAverageable', 'rangeCountable', 'rangeSummable', 'rangeAverageable', 'signatureSecurityLevelRequirement', 'requiresIdentityEncryptionBoundedKey', 'requiresIdentityDecryptionBoundedKey']);
   const rest = Object.fromEntries(Object.entries(entity.config).filter(([k]) => !shown.has(k)));
@@ -262,6 +272,11 @@ function EntityView({ entity, model }: { entity: Entity; model: ContractModel })
         {entity.indices.length} indexes · {outgoing} references out · {incoming} in
       </p>
       {entity.description && <p>{entity.description}</p>}
+      {onShowLayout && (
+        <button type="button" className="cv-primary cv-layout-button" onClick={() => onShowLayout(entity.name)}>
+          GroveDB layout
+        </button>
+      )}
       <ChipList chips={chips} />
       {entity.typeReferences.map((r) => (
         <ReferenceView key={r.path} reference={r} />
@@ -315,7 +330,7 @@ function RelationshipView({
   );
 }
 
-export function InspectorPanel({ selection, model, hiddenEdges, onToggleEdge, onOpenContract, onClose, diff }: Props) {
+export function InspectorPanel({ selection, model, hiddenEdges, onToggleEdge, onOpenContract, onClose, diff, onShowLayout }: Props) {
   if (!selection) return null;
   const change = changeFor(diff, selection);
 
@@ -327,7 +342,7 @@ export function InspectorPanel({ selection, model, hiddenEdges, onToggleEdge, on
 
       {change && <ChangeSection change={change} />}
 
-      {selection.kind === 'entity' && <EntityView entity={selection.entity} model={model} />}
+      {selection.kind === 'entity' && <EntityView entity={selection.entity} model={model} onShowLayout={onShowLayout} />}
 
       {selection.kind === 'field' && <FieldView entity={selection.entity} field={selection.field} />}
 
