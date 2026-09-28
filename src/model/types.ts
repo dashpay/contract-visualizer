@@ -88,6 +88,8 @@ export interface Field {
   requiredSince?: number;
   /** Listed in an index-only type's `entryPayload`. */
   entryPayload?: boolean;
+  /** The property schema as written (before $ref resolution; an object's members are fields of their own). */
+  written: Record<string, unknown>;
 }
 
 export interface IndexField {
@@ -101,6 +103,8 @@ export interface Index {
   unique: boolean;
   /** Every index keyword besides name / properties / unique (contested, countable, timeRange, terminal, …). */
   options: Record<string, unknown>;
+  /** The index as written. */
+  written: Record<string, unknown>;
 }
 
 export interface Entity {
@@ -115,6 +119,8 @@ export interface Entity {
   /** propertyConstraints: rule name -> condition. */
   propertyConstraints: Record<string, unknown>;
   description?: string;
+  /** The document type schema as written. */
+  schema: Record<string, unknown>;
 }
 
 export type Confidence = 'high' | 'medium' | 'low';

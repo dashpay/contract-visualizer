@@ -5,6 +5,7 @@ import { MarkerType } from '@xyflow/react';
 import type { ViewKind } from '../config';
 import { documentTypeChips, refKind, type RefKind } from '../model/describe';
 import type { ContractModel, Entity, ExternalNode, Relationship } from '../model/types';
+import type { ChangeKind, ContractDiff } from '../model/diff';
 
 export const NODE_WIDTH = 300;
 export const EXTERNAL_WIDTH = 190;
@@ -20,9 +21,45 @@ export interface Filters {
   inferred: boolean;
   /** Identity / contract / token / key nodes (other contracts' document types always show). */
   platform: boolean;
+  /** Compare mode: only document types with a change (and what their edges reach). */
+  onlyChanged: boolean;
 }
 
-export const DEFAULT_FILTERS: Filters = { declared: true, inferred: true, platform: true };
+export const DEFAULT_FILTERS: Filters = { declared: true, inferred: true, platform: true, onlyChanged: false };
+
+/** Compare mode: the status of one document type and its parts. */
+export interface EntityDiff {
+  status?: ChangeKind;
+  fields: Record<string, ChangeKind>;
+  indices: Record<string, ChangeKind>;
+  rules: Record<string, ChangeKind>;
+  /** Parts a platform update would refuse: 'type', 'field:<path>', 'index:<name>', 'rule:<name>'. */
+  refused: string[];
+}
+
+export function entityDiff(diff: ContractDiff, name: string): EntityDiff {
+  const pick = (m: Record<string, ChangeKind>) => {
+    const out: Record<string, ChangeKind> = {};
+    const prefix = `${name}::`;
+    for (const [k, v] of Object.entries(m)) if (k.startsWith(prefix)) out[k.slice(prefix.length)] = v;
+    return out;
+  };
+  const refused: string[] = [];
+  for (const r of diff.status.refused) {
+    if (r === `type:${name}`) refused.push('type');
+    else {
+      const m = r.match(/^(field|index|rule):(.*?)::(.*)$/);
+      if (m && m[2] === name) refused.push(`${m[1]}:${m[3]}`);
+    }
+  }
+  return {
+    status: diff.status.entities[name],
+    fields: pick(diff.status.fields),
+    indices: pick(diff.status.indices),
+    rules: pick(diff.status.rules),
+    refused,
+  };
+}
 
 /** Estimate a node's rendered height so elk can lay it out before paint (re-laid out once measured). */
 export function estimateNodeHeight(entity: Entity): number {
@@ -47,11 +84,14 @@ export interface EntityNodeData extends Record<string, unknown> {
   targets: string[];
   /** Kind of the outgoing reference per field path, for the row marker colour. */
   refKinds: Record<string, RefKind>;
+  /** Compare mode only. */
+  diff?: EntityDiff;
 }
 
 export interface ExternalNodeData extends Record<string, unknown> {
   node: ExternalNode;
   incoming: number;
+  status?: ChangeKind;
 }
 
 export type DiagramNode = Node<EntityNodeData> | Node<ExternalNodeData>;
@@ -67,16 +107,28 @@ function isPlatformNode(id: string): boolean {
   return id.startsWith('platform:');
 }
 
+/** Document types shown: all, or in compare mode with onlyChanged, the changed ones. */
+function shownEntities(model: ContractModel, filters: Filters, diff?: ContractDiff): Set<string> {
+  const names = model.entities.map((e) => e.name);
+  if (!diff || !filters.onlyChanged) return new Set(names);
+  return new Set(names.filter((n) => diff.status.entities[n]));
+}
+
 export function visibleRelationships(
   model: ContractModel,
   hidden: Set<string>,
   filters: Filters,
+  diff?: ContractDiff,
 ): Relationship[] {
+  const shown = shownEntities(model, filters, diff);
+  const isEntity = new Set(model.entities.map((e) => e.name));
   return model.relationships.filter((rel) => {
     if (hidden.has(rel.id)) return false;
     if (rel.kind === 'declared' && !filters.declared) return false;
     if (rel.kind === 'inferred' && !filters.inferred) return false;
     if (!filters.platform && isPlatformNode(rel.to)) return false;
+    if (!shown.has(rel.from)) return false;
+    if (isEntity.has(rel.to) && !shown.has(rel.to)) return false;
     return true;
   });
 }
@@ -124,16 +176,29 @@ export function kindColor(kind: RefKind | 'inferred'): string {
   return KIND_VAR[kind];
 }
 
+const STATUS_STROKE: Record<ChangeKind, string> = {
+  added: 'var(--diff-added)',
+  removed: 'var(--diff-removed)',
+  changed: 'var(--diff-changed)',
+};
+
 export function toEdges(
   model: ContractModel,
   view: ViewKind,
   hidden: Set<string>,
   filters: Filters,
+  diff?: ContractDiff,
 ): Edge[] {
-  return visibleRelationships(model, hidden, filters).map((rel) => {
+  return visibleRelationships(model, hidden, filters, diff).map((rel) => {
     const kind = relKind(model, rel);
-    const stroke = kind === 'inferred' && rel.confidence === 'low' ? 'var(--cv-edge-weak)' : kindColor(kind);
+    const status = diff?.status.relationships[rel.id];
+    const stroke = status
+      ? STATUS_STROKE[status]
+      : kind === 'inferred' && rel.confidence === 'low'
+        ? 'var(--cv-edge-weak)'
+        : kindColor(kind);
     const tp = targetPath(model, rel);
+    const label = edgeLabel(rel, view);
     return {
       id: rel.id,
       source: rel.from,
@@ -141,21 +206,23 @@ export function toEdges(
       sourceHandle: `out:${rel.fromField}`,
       targetHandle: tp ? `in:${tp}` : 'in',
       type: 'smoothstep',
-      label: edgeLabel(rel, view),
+      label: status === 'added' ? `+ ${label}` : status === 'removed' ? `− ${label}` : label,
       labelShowBg: true,
-      labelStyle: { fill: kind === 'inferred' ? 'var(--text-muted)' : stroke },
+      labelStyle: { fill: kind === 'inferred' && !status ? 'var(--text-muted)' : stroke },
       markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16, color: stroke },
       style: {
         stroke,
-        strokeWidth: kind === 'inferred' ? 1.3 : 1.7,
-        strokeDasharray: kind === 'inferred' ? '5 4' : undefined,
+        strokeWidth: status ? 2.2 : kind === 'inferred' ? 1.3 : 1.7,
+        strokeDasharray: status === 'removed' ? '6 4' : kind === 'inferred' ? '5 4' : undefined,
+        opacity: diff && !status ? 0.55 : undefined,
       },
       data: { relationship: rel },
     } satisfies Edge;
   });
 }
 
-export function toNodes(model: ContractModel, view: ViewKind, edges: Edge[]): DiagramNode[] {
+export function toNodes(model: ContractModel, view: ViewKind, edges: Edge[], diff?: ContractDiff, filters: Filters = DEFAULT_FILTERS): DiagramNode[] {
+  const shown = shownEntities(model, filters, diff);
   const sources = new Map<string, Set<string>>();
   const targets = new Map<string, Set<string>>();
   const incoming = new Map<string, number>();
@@ -171,7 +238,7 @@ export function toNodes(model: ContractModel, view: ViewKind, edges: Edge[]): Di
     incoming.set(e.target, (incoming.get(e.target) ?? 0) + 1);
   }
 
-  const entityNodes: Node<EntityNodeData>[] = model.entities.map((entity) => {
+  const entityNodes: Node<EntityNodeData>[] = model.entities.filter((e) => shown.has(e.name)).map((entity) => {
     const refKinds: Record<string, RefKind> = {};
     for (const rel of model.relationships) {
       if (rel.from === entity.name && rel.kind === 'declared') {
@@ -189,6 +256,7 @@ export function toNodes(model: ContractModel, view: ViewKind, edges: Edge[]): Di
         sources: [...(sources.get(entity.name) ?? [])],
         targets: [...(targets.get(entity.name) ?? [])],
         refKinds,
+        diff: diff ? entityDiff(diff, entity.name) : undefined,
       },
       width: NODE_WIDTH,
       height: estimateNodeHeight(entity),
@@ -203,7 +271,15 @@ export function toNodes(model: ContractModel, view: ViewKind, edges: Edge[]): Di
       id: node.id,
       type: 'external',
       position: { x: 0, y: 0 },
-      data: { node, incoming: incoming.get(node.id) ?? 0 },
+      data: {
+        node,
+        incoming: incoming.get(node.id) ?? 0,
+        status: diff && !diff.head.externals.some((n) => n.id === node.id)
+          ? 'removed'
+          : diff && !diff.base.externals.some((n) => n.id === node.id)
+            ? 'added'
+            : undefined,
+      },
       width: EXTERNAL_WIDTH,
       height: node.kind === 'externalDocument' ? 70 : 52,
     }));

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useEdgesState, useNodesState, type Edge } from '@xyflow/react';
 import { loadConfig, saveOverride, type Network, type ViewKind } from './config';
-import { loadContractModel } from './sdk/contract';
+import { loadContractJson, loadContractModel } from './sdk/contract';
 import { resetConnections } from './sdk/pool';
 import { modelFromPastedJson } from './model/introspect';
 import { withRelationships } from './model/relationships';
@@ -14,17 +14,48 @@ import { Toolbar } from './components/Toolbar';
 import { InspectorPanel } from './components/InspectorPanel';
 import { PasteContractModal } from './components/PasteContractModal';
 import { ContractMetaPanel } from './components/ContractMetaPanel';
+import { ChangesPanel } from './components/ChangesPanel';
+import { CompareModal, type CompareSpec } from './components/CompareModal';
 import { EXAMPLES, exampleId, exampleKey } from './examples';
+import { fileLabel, looksLikeUrl, urlFromSource, urlSourceId } from './urlSource';
+import { diffContracts, type Change, type ContractDiff } from './model/diff';
+import { loadPr, parsePrUrl } from './github';
+import { truncateMiddle } from './format';
 
 const initial = loadConfig();
 
 type Status = 'idle' | 'loading' | 'ready' | 'error';
 
+/** A source as typed in the compare dialog -> a loader source id. */
+function toSourceId(typed: string): string {
+  const t = typed.trim();
+  if (looksLikeUrl(t)) return urlSourceId(t);
+  return t;
+}
+
+/** A short label for a source as typed. */
+function sourceLabel(typed: string, net: Network): string {
+  const t = typed.trim();
+  if (!t) return '(none: an empty contract)';
+  const key = exampleKey(t);
+  if (key) return `example ${key}`;
+  if (looksLikeUrl(t)) {
+    const m = t.match(/raw\.githubusercontent\.com\/[^/]+\/[^/]+\/([0-9a-f]{7})[0-9a-f]*\//);
+    return `${fileLabel(t) ?? t}${m ? ` @ ${m[1]}` : ''}`;
+  }
+  return `${truncateMiddle(t, 6, 6)} on ${net}`;
+}
+
+const EMPTY_CONTRACT = { documentSchemas: {} };
+
 export default function App() {
   const [network, setNetwork] = useState<Network>(initial.network);
   const [devnetName, setDevnetName] = useState(initial.devnetName ?? '');
   const [view, setView] = useState<ViewKind>(initial.view);
-  const [contractInput, setContractInput] = useState(exampleKey(initial.contractId) ? '' : initial.contractId);
+  const [contractInput, setContractInput] = useState(
+    exampleKey(initial.contractId) ? '' : (urlFromSource(initial.contractId) ?? initial.contractId),
+  );
+  const [source, setSource] = useState('');
   const [model, setModel] = useState<ContractModel | null>(null);
   const [status, setStatus] = useState<Status>('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -34,6 +65,12 @@ export default function App() {
   const [pasteOpen, setPasteOpen] = useState(false);
   const [pasteError, setPasteError] = useState<string | undefined>(undefined);
   const [layoutKey, setLayoutKey] = useState(0);
+  const [diff, setDiff] = useState<ContractDiff | null>(null);
+  const [compareSpec, setCompareSpec] = useState<CompareSpec | null>(null);
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [compareError, setCompareError] = useState<string | undefined>(undefined);
+  const [compareInitialPr, setCompareInitialPr] = useState<string | undefined>(undefined);
+  const [focus, setFocus] = useState<{ id: string; n: number } | undefined>(undefined);
 
   const [nodes, setNodes, onNodesChange] = useNodesState<DiagramNode>([]);
   const [edges, setEdges] = useEdgesState<Edge>([]);
@@ -44,6 +81,8 @@ export default function App() {
   const filtersRef = useRef(filters);
   const nodesRef = useRef(nodes);
   const edgesRef = useRef(edges);
+  const diffRef = useRef(diff);
+  diffRef.current = diff;
   viewRef.current = view;
   hiddenRef.current = hiddenEdges;
   filtersRef.current = filters;
@@ -53,7 +92,9 @@ export default function App() {
   const updateUrl = useCallback((source: string, net: Network, devnet: string, v: ViewKind) => {
     const p = new URLSearchParams();
     const key = exampleKey(source);
+    const url = urlFromSource(source);
     if (key) p.set('example', key);
+    else if (url) p.set('url', url);
     else if (source) {
       p.set('contract', source);
       p.set('network', net);
@@ -66,8 +107,9 @@ export default function App() {
   /** Rebuild nodes and edges from the model; lay out from scratch when asked or when the node set changed. */
   const rebuild = useCallback(
     async (m: ContractModel, relayout: boolean) => {
-      const es = toEdges(m, viewRef.current, hiddenRef.current, filtersRef.current);
-      const built = toNodes(m, viewRef.current, es);
+      const d = diffRef.current ?? undefined;
+      const es = toEdges(m, viewRef.current, hiddenRef.current, filtersRef.current, d);
+      const built = toNodes(m, viewRef.current, es, d, filtersRef.current);
       const current = new Map(nodesRef.current.map((n) => [n.id, n]));
       const sameSet = built.length === current.size && built.every((n) => current.has(n.id));
       if (relayout || !sameSet) {
@@ -85,7 +127,11 @@ export default function App() {
 
   const applyModel = useCallback(
     async (m: ContractModel, source: string, net: Network, devnet: string) => {
+      setDiff(null);
+      diffRef.current = null;
+      setCompareSpec(null);
       setModel(m);
+      setSource(source);
       setSelection(null);
       const nextHidden = new Set<string>();
       setHiddenEdges(nextHidden);
@@ -113,13 +159,134 @@ export default function App() {
     [applyModel],
   );
 
+  const runCompare = useCallback(
+    async (spec: CompareSpec, net: Network, devnet: string) => {
+      const hadModel = !!diffRef.current || nodesRef.current.length > 0;
+      setStatus('loading');
+      setErrorMsg(null);
+      setCompareError(undefined);
+      try {
+        const load1 = (typed: string) =>
+          typed.trim()
+            ? loadContractJson({ network: net, contractId: toSourceId(typed), devnetName: devnet || undefined, view: viewRef.current })
+            : Promise.resolve(EMPTY_CONTRACT);
+        const [b, h] = await Promise.all([load1(spec.base), load1(spec.head)]);
+        const d = diffContracts(b, h);
+        setDiff(d);
+        diffRef.current = d;
+        setCompareSpec(spec);
+        setModel(d.merged);
+        setSource('');
+        setSelection(null);
+        const nextHidden = new Set<string>();
+        setHiddenEdges(nextHidden);
+        hiddenRef.current = nextHidden;
+        await rebuild(d.merged, true);
+        setStatus('ready');
+        setCompareOpen(false);
+        const p = new URLSearchParams();
+        if (spec.pr) {
+          p.set('pr', spec.pr.url);
+          p.set('file', spec.pr.file);
+        } else {
+          p.set('base', spec.base);
+          p.set('head', spec.head);
+          const usesId = [spec.base, spec.head].some((t) => t && !looksLikeUrl(t) && !exampleKey(t));
+          if (usesId) {
+            p.set('network', net);
+            if (net === 'devnet' && devnet) p.set('devnet', devnet);
+          }
+        }
+        p.set('view', viewRef.current);
+        window.history.replaceState(null, '', `?${p.toString()}`);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        setCompareError(msg);
+        if (!compareOpenRef.current) {
+          setErrorMsg(msg);
+          setStatus('error');
+        } else {
+          setStatus(hadModel ? 'ready' : 'idle');
+        }
+      }
+    },
+    [rebuild],
+  );
+  const compareOpenRef = useRef(compareOpen);
+  compareOpenRef.current = compareOpen;
+
   // Initial load from URL/localStorage/env.
   useEffect(() => {
-    if (initial.contractId) void load(initial.contractId, initial.network, initial.devnetName ?? '');
+    const c = initial.compare;
+    const net = initial.network;
+    const devnet = initial.devnetName ?? '';
+    if (c && 'pr' in c) {
+      const ref = parsePrUrl(c.pr);
+      if (c.file && ref) {
+        setStatus('loading');
+        void loadPr(ref)
+          .then((pr) => {
+            const f = pr.files.find((x) => x.path === c.file);
+            if (!f) throw new Error(`${c.file} is not a changed JSON file of ${pr.url}.`);
+            return runCompare({ base: f.baseUrl ?? '', head: f.headUrl ?? '', pr: { url: pr.url, file: f.path, title: pr.title } }, net, devnet);
+          })
+          .catch((err) => {
+            setErrorMsg(err instanceof Error ? err.message : String(err));
+            setStatus('error');
+          });
+      } else {
+        setCompareInitialPr(c.pr);
+        setCompareOpen(true);
+      }
+      return;
+    }
+    if (c) {
+      void runCompare({ base: c.base, head: c.head }, net, devnet);
+      return;
+    }
+    if (initial.contractId) void load(initial.contractId, net, devnet);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const onLoad = useCallback((id: string) => void load(id, network, devnetName), [load, network, devnetName]);
+  const onSelectChange = useCallback(
+    (c: Change) => {
+      const d = diffRef.current;
+      if (!d || !c.entity) {
+        setSelection(null);
+        return;
+      }
+      const entity = d.merged.entities.find((e) => e.name === c.entity);
+      if (!entity) return;
+      if (c.scope === 'field') {
+        const field = entity.fields.find((f) => f.path === c.target);
+        setSelection(field ? { kind: 'field', entity, field } : { kind: 'entity', entity });
+      } else if (c.scope === 'index') {
+        const index = entity.indices.find((i) => i.name === c.target);
+        setSelection(index ? { kind: 'index', entity, index } : { kind: 'entity', entity });
+      } else if (c.scope === 'rule' && c.target) {
+        setSelection({ kind: 'constraint', entity, name: c.target, rule: entity.propertyConstraints[c.target] });
+      } else {
+        setSelection({ kind: 'entity', entity });
+      }
+      setFocus((f) => ({ id: entity.name, n: (f?.n ?? 0) + 1 }));
+    },
+    [],
+  );
+
+  const exitCompare = useCallback(() => {
+    const d = diffRef.current;
+    const spec = compareSpec;
+    if (!d) return;
+    const headSource = spec?.head ? toSourceId(spec.head) : '';
+    void applyModel(d.head, headSource, network, devnetName);
+    if (spec?.head) setContractInput(spec.head);
+  }, [applyModel, compareSpec, network, devnetName]);
+
+  // A link in the contract id box loads that JSON file instead of a registered contract.
+  const onLoad = useCallback(
+    (id: string) => void load(looksLikeUrl(id) ? urlSourceId(id) : id, network, devnetName),
+    [load, network, devnetName],
+  );
   const onExample = useCallback((key: string) => void load(exampleId(key), network, devnetName), [load, network, devnetName]);
   const onOpenContract = useCallback(
     (id: string) => {
@@ -211,6 +378,11 @@ export default function App() {
             setPasteError(undefined);
             setPasteOpen(true);
           }}
+          onCompare={() => {
+            setCompareError(undefined);
+            setCompareInitialPr(undefined);
+            setCompareOpen(true);
+          }}
           view={view}
           onView={changeView}
           status={status}
@@ -225,7 +397,7 @@ export default function App() {
               <p>
                 {status === 'loading'
                   ? 'Loading…'
-                  : 'Enter a data contract id and pick a network, paste contract JSON, or open an example.'}
+                  : 'Enter a data contract id and pick a network, paste contract JSON, open an example, or compare two versions.'}
               </p>
               {status !== 'loading' && (
                 <div className="cv-examples">
@@ -254,13 +426,31 @@ export default function App() {
               onNodesChange={onNodesChange}
               onRelayout={onRelayout}
               layoutKey={layoutKey}
-              exportName={model.contractId ?? 'contract'}
+              exportName={
+                diff && compareSpec
+                  ? `${fileLabel(compareSpec.head) ?? model.contractId ?? 'contract'}-diff`
+                  : (model.contractId ?? fileLabel(urlFromSource(source) ?? '') ?? 'contract')
+              }
               filters={filters}
               onFilters={changeFilters}
               counts={counts}
+              compare={!!diff}
+              focus={focus}
             />
           )}
-          {model && status !== 'error' && <ContractMetaPanel model={model} />}
+          {model && status !== 'error' && !diff && <ContractMetaPanel model={model} />}
+          {model && status !== 'error' && diff && compareSpec && (
+            <ChangesPanel
+              diff={diff}
+              baseLabel={sourceLabel(compareSpec.base, network)}
+              headLabel={sourceLabel(compareSpec.head, network)}
+              pr={compareSpec.pr}
+              onlyChanged={filters.onlyChanged}
+              onOnlyChanged={(v) => changeFilters({ ...filters, onlyChanged: v })}
+              onSelect={onSelectChange}
+              onExit={exitCompare}
+            />
+          )}
           {model && selection && status !== 'error' && (
             <InspectorPanel
               selection={selection}
@@ -269,12 +459,22 @@ export default function App() {
               onToggleEdge={toggleEdge}
               onOpenContract={onOpenContract}
               onClose={() => setSelection(null)}
+              diff={diff ?? undefined}
             />
           )}
         </div>
 
         {pasteOpen && (
           <PasteContractModal onApply={applyPaste} onClose={() => setPasteOpen(false)} error={pasteError} />
+        )}
+        {compareOpen && (
+          <CompareModal
+            initial={compareSpec ?? { base: diff ? '' : contractInput, head: '' }}
+            initialPr={compareInitialPr}
+            onCompare={(spec) => void runCompare(spec, network, devnetName)}
+            onClose={() => setCompareOpen(false)}
+            error={compareError}
+          />
         )}
       </div>
     </SelectionContext.Provider>

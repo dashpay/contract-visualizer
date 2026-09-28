@@ -1,20 +1,28 @@
-// Fetch a data contract via the Evo SDK and build the diagram model.
+// Load a contract, from any source, and build the diagram model.
 //
-// The SDK (with its inlined WASM, several MB) is imported on the first network
-// fetch only, so examples and pasted JSON render without downloading it.
+// A source is a registered contract id (fetched from the configured network),
+// 'url:<link>' (a JSON file on the web), or 'demo' / 'example:<key>' (a
+// bundled example). The SDK (with its inlined WASM, several MB) is imported on
+// the first network fetch only, so examples, links and pasted JSON render
+// without downloading it.
 
 import type { AppConfig } from '../config';
 import { exampleKey, findExample } from '../examples';
+import { fetchContractJson, urlFromSource } from '../urlSource';
 import { modelFromPastedJson } from '../model/introspect';
 import { withRelationships } from '../model/relationships';
 import type { ContractModel } from '../model/types';
 
-export async function loadContractModel(config: AppConfig): Promise<ContractModel> {
+/** The contract's JSON form, as fetched, linked or bundled. */
+export async function loadContractJson(config: AppConfig): Promise<unknown> {
+  const url = urlFromSource(config.contractId);
+  if (url) return fetchContractJson(url);
+
   const key = exampleKey(config.contractId);
   if (key) {
     const example = findExample(key);
     if (!example) throw new Error(`No bundled example named "${key}".`);
-    return withRelationships(modelFromPastedJson(example.contract));
+    return example.contract;
   }
 
   const { getConnectedSdk } = await import('./client');
@@ -43,6 +51,9 @@ export async function loadContractModel(config: AppConfig): Promise<ContractMode
   if (!json.documentSchemas) json.documentSchemas = contract.schemas;
   if (typeof json.id !== 'string') json.id = String(contract.id);
   if (typeof json.ownerId !== 'string') json.ownerId = String(contract.ownerId);
+  return json;
+}
 
-  return withRelationships(modelFromPastedJson(json));
+export async function loadContractModel(config: AppConfig): Promise<ContractModel> {
+  return withRelationships(modelFromPastedJson(await loadContractJson(config)));
 }

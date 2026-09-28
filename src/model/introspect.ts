@@ -137,6 +137,7 @@ function parseIndices(schema: Schema): Index[] {
       fields,
       unique: unique === true,
       options,
+      written: idx,
     };
   });
 }
@@ -180,6 +181,7 @@ function pushProperties(
     return pa - pb;
   });
   for (const name of byPosition) {
+    const { properties: _members, ...written } = properties[name] ?? {};
     const { prop, ref } = resolveRef(properties[name] ?? {}, defs);
     const path = prefix ? `${prefix}.${name}` : name;
     const items = isObj(prop.items) ? prop.items : undefined;
@@ -217,6 +219,7 @@ function pushProperties(
       transient: top && marks.transient.has(name) ? true : undefined,
       requiredSince: typeof prop.requiredSince === 'number' ? prop.requiredSince : undefined,
       entryPayload: top && marks.entryPayload.has(name) ? true : undefined,
+      written,
     });
 
     if (prop.type === 'object' && isObj(prop.properties)) {
@@ -280,6 +283,7 @@ function buildEntity(name: string, schema: Schema, defs: Record<string, unknown>
       unique: marks.unique.has(n),
       constraints: {},
       reference: typeReferences.find((r) => r.path === n),
+      written: {},
     });
   }
 
@@ -294,6 +298,7 @@ function buildEntity(name: string, schema: Schema, defs: Record<string, unknown>
     typeReferences,
     propertyConstraints: isObj(schema.propertyConstraints) ? { ...schema.propertyConstraints } : {},
     description: typeof schema.description === 'string' ? schema.description : undefined,
+    schema,
   };
 }
 

@@ -16,13 +16,13 @@ const KIND: Record<ExternalNodeData['node']['kind'], RefKind> = {
 };
 
 function ExternalNodeImpl({ data }: NodeProps) {
-  const { node, incoming } = data as ExternalNodeData;
+  const { node, incoming, status } = data as ExternalNodeData;
   const select = useSelect();
   const color = kindColor(KIND[node.kind]);
   return (
     <button
       type="button"
-      className="cv-external"
+      className={`cv-external ${status ? `cv-external-${status}` : ''}`}
       style={{ borderColor: color }}
       onClick={(e) => {
         e.stopPropagation();

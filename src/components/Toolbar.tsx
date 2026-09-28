@@ -14,6 +14,7 @@ interface Props {
   onLoad: (contractId: string) => void;
   onExample: (key: string) => void;
   onPaste: () => void;
+  onCompare: () => void;
   view: ViewKind;
   onView: (v: ViewKind) => void;
   status: 'idle' | 'loading' | 'ready' | 'error';
@@ -32,6 +33,7 @@ export function Toolbar({
   onLoad,
   onExample,
   onPaste,
+  onCompare,
   view,
   onView,
   status,
@@ -77,17 +79,20 @@ export function Toolbar({
         <input
           type="text"
           className="cv-mono"
-          placeholder="data contract id (base58)"
+          placeholder="data contract id (base58) or link to contract JSON"
           value={contractId}
           spellCheck={false}
           onChange={(e) => onContractId(e.target.value)}
-          aria-label="Contract id"
+          aria-label="Contract id or JSON link"
         />
         <button type="submit" className="cv-primary" disabled={status === 'loading' || !contractId.trim()}>
           {status === 'loading' ? 'Loading…' : 'Load'}
         </button>
         <button type="button" onClick={onPaste}>
           Paste JSON
+        </button>
+        <button type="button" onClick={onCompare} title="Compare two versions of a contract">
+          Compare
         </button>
         <select
           value={example}

@@ -3,22 +3,27 @@
 // seeds the first paint and powers shareable deep links.
 //
 // Resolution precedence (highest first):
-//   1. URL query   — ?contract=<id>&network=testnet&view=uml, ?example=<key> (or ?demo=1)
+//   1. URL query   — ?contract=<id>&network=testnet&view=uml, ?example=<key> (or ?demo=1),
+//                    ?url=<link to a contract JSON file>,
+//                    ?base=<source>&head=<source> or ?pr=<GitHub PR link>&file=<path> to compare
 //   2. localStorage — last-used selection
 //   3. build-time env — VITE_CONTRACT_ID / VITE_NETWORK / VITE_DEVNET_NAME
 //   4. defaults
 
 import { exampleId } from './examples';
+import { urlSourceId } from './urlSource';
 
 export type Network = 'testnet' | 'mainnet' | 'devnet' | 'local';
 export type ViewKind = 'uml' | 'merise';
 
 export interface AppConfig {
   network: Network;
-  /** dash data contract id (base58), 'demo' / 'example:<key>', or '' when none chosen yet. */
+  /** dash data contract id (base58), 'demo' / 'example:<key>', 'url:<link>', or '' when none chosen yet. */
   contractId: string;
   devnetName?: string;
   view: ViewKind;
+  /** Compare mode from the URL: two sources as typed, or a pull request (and one of its files). */
+  compare?: { base: string; head: string } | { pr: string; file?: string };
 }
 
 const LS_KEY = 'contract-visualizer.config.v1';
@@ -60,6 +65,8 @@ function readUrlParams(): Partial<AppConfig> {
     if (params.get('demo') !== null) out.contractId = 'demo';
     const example = params.get('example');
     if (example) out.contractId = exampleId(example.trim());
+    const url = params.get('url');
+    if (url) out.contractId = urlSourceId(url.trim());
     const contract = params.get('contract') ?? params.get('contractId');
     if (contract) out.contractId = contract.trim();
     const network = params.get('network');
@@ -68,6 +75,11 @@ function readUrlParams(): Partial<AppConfig> {
     if (devnet) out.devnetName = devnet.trim();
     const view = params.get('view');
     if (view) out.view = asView(view, 'uml');
+    const pr = params.get('pr');
+    const base = params.get('base');
+    const head = params.get('head');
+    if (pr) out.compare = { pr: pr.trim(), file: params.get('file')?.trim() || undefined };
+    else if (base !== null || head !== null) out.compare = { base: (base ?? '').trim(), head: (head ?? '').trim() };
     return out;
   } catch {
     return {};
@@ -76,7 +88,7 @@ function readUrlParams(): Partial<AppConfig> {
 
 export function saveOverride(patch: Partial<AppConfig>): void {
   try {
-    const merged = { ...readOverride(), ...patch };
+    const { compare: _url, ...merged } = { ...readOverride(), ...patch };
     localStorage.setItem(LS_KEY, JSON.stringify(merged));
   } catch {
     // storage unavailable (private window): the URL still carries the selection

@@ -34,13 +34,33 @@ interface Props {
   filters: Filters;
   onFilters: (f: Filters) => void;
   counts: { declared: number; inferred: number; platform: number };
+  /** Compare mode: show the diff legend. */
+  compare?: boolean;
+  /** Center the view on this node; `n` changes on every request. */
+  focus?: { id: string; n: number };
 }
 
 const LEGEND: RefKind[] = ['document', 'external', 'identity', 'key', 'contract', 'token'];
 
-function Legend({ filters, onFilters, counts }: Pick<Props, 'filters' | 'onFilters' | 'counts'>) {
+function Legend({ filters, onFilters, counts, compare }: Pick<Props, 'filters' | 'onFilters' | 'counts' | 'compare'>) {
   return (
     <div className="cv-legend">
+      {compare && (
+        <div className="cv-legend-kinds">
+          <span className="cv-legend-kind">
+            <span className="cv-legend-swatch" style={{ background: 'var(--diff-added)' }} />+ added
+          </span>
+          <span className="cv-legend-kind">
+            <span className="cv-legend-swatch" style={{ background: 'var(--diff-removed)' }} />− removed
+          </span>
+          <span className="cv-legend-kind">
+            <span className="cv-legend-swatch" style={{ background: 'var(--diff-changed)' }} />~ changed
+          </span>
+          <span className="cv-legend-kind">
+            <span className="cv-refused-mark">✕</span> refused as an update
+          </span>
+        </div>
+      )}
       <div className="cv-legend-kinds">
         {LEGEND.map((k) => (
           <span key={k} className="cv-legend-kind">
@@ -71,7 +91,7 @@ function Legend({ filters, onFilters, counts }: Pick<Props, 'filters' | 'onFilte
   );
 }
 
-function CanvasInner({ nodes, edges, onNodesChange, onRelayout, layoutKey, exportName, filters, onFilters, counts }: Props) {
+function CanvasInner({ nodes, edges, onNodesChange, onRelayout, layoutKey, exportName, filters, onFilters, counts, compare, focus }: Props) {
   const select = useSelect();
   const initialized = useNodesInitialized();
   const { fitView } = useReactFlow();
@@ -97,6 +117,10 @@ function CanvasInner({ nodes, edges, onNodesChange, onRelayout, layoutKey, expor
     setFitPending(false);
     void fitView({ padding: 0.12 });
   }, [nodes, fitPending, fitView]);
+
+  useEffect(() => {
+    if (focus) void fitView({ nodes: [{ id: focus.id }], duration: 400, padding: 0.4, maxZoom: 1.1 });
+  }, [focus, fitView]);
 
   const onEdgeClick = useCallback<EdgeMouseHandler<Edge>>(
     (_event, edge) => {
@@ -135,7 +159,7 @@ function CanvasInner({ nodes, edges, onNodesChange, onRelayout, layoutKey, expor
         </button>
       </Panel>
       <Panel position="bottom-center">
-        <Legend filters={filters} onFilters={onFilters} counts={counts} />
+        <Legend filters={filters} onFilters={onFilters} counts={counts} compare={compare} />
       </Panel>
     </ReactFlow>
   );
