@@ -629,9 +629,7 @@
                               "structureNode": "contracts.contract.documents.document_type.index_property.value.members",
                               "element": "Tree",
                               "rankedAxes": [],
-                              "indexes": [
-                                "parentNameAndLabel"
-                              ],
+                              "indexes": [],
                               "notes": [],
                               "children": [
                                 {
