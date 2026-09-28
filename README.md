@@ -97,8 +97,10 @@ and a file (which usually leaves defaults out) compare equal.
 
 ## Examples
 
-Bundled, offline, and each one passes full validation by the protocol version 14 parser
-(`DataContract.fromJSON(json, true, 14)` from `@dashevo/evo-sdk`), checked in CI:
+Bundled, offline, and each one passes the protocol version 14 contract parser as
+`@dashevo/evo-sdk` compiles it (`DataContract.fromJSON(json, true, 14)`), checked in CI.
+The SDK is built without dpp's `validation` feature, so this does not run the document
+meta-schema or the parser checks gated behind that feature:
 
 | Key | What it shows |
 |---|---|
