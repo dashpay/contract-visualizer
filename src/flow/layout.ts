@@ -1,4 +1,4 @@
-// elk layered auto-layout for the entity nodes. Runs in-thread via the bundled
+// elk layered auto-layout for the diagram nodes. Runs in-thread via the bundled
 // elk build (no separate worker file needed — good for static hosting).
 
 import ELK from 'elkjs/lib/elk.bundled.js';
@@ -10,26 +10,27 @@ const elk = new ELK();
 const LAYOUT_OPTIONS = {
   'elk.algorithm': 'layered',
   'elk.direction': 'RIGHT',
-  'elk.layered.spacing.nodeNodeBetweenLayers': '120',
-  'elk.spacing.nodeNode': '60',
+  'elk.layered.spacing.nodeNodeBetweenLayers': '140',
+  'elk.spacing.nodeNode': '50',
   'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX',
+  'elk.layered.considerModelOrder.strategy': 'NODES_AND_EDGES',
 };
 
-export async function layoutNodes<T extends Record<string, unknown>>(
-  nodes: Node<T>[],
-  edges: Edge[],
-): Promise<Node<T>[]> {
+export async function layoutNodes<N extends Node>(nodes: N[], edges: Edge[]): Promise<N[]> {
   if (nodes.length === 0) return nodes;
 
   const graph = {
     id: 'root',
     layoutOptions: LAYOUT_OPTIONS,
+    // Prefer the measured size (after first paint) over the pre-paint estimate.
     children: nodes.map((n) => ({
       id: n.id,
-      width: n.width ?? NODE_WIDTH,
-      height: n.height ?? 120,
+      width: n.measured?.width ?? n.width ?? NODE_WIDTH,
+      height: n.measured?.height ?? n.height ?? 120,
     })),
-    edges: edges.map((e) => ({ id: e.id, sources: [e.source], targets: [e.target] })),
+    edges: edges
+      .filter((e) => e.source !== e.target)
+      .map((e) => ({ id: e.id, sources: [e.source], targets: [e.target] })),
   };
 
   const result = await elk.layout(graph);

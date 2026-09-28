@@ -17,8 +17,9 @@ export default defineConfig(({ command }) => ({
   },
   build: {
     target: 'esnext',
-    // The inlined WASM payload is large; raise the warning ceiling so CI logs
-    // stay readable. (It is still lazy-initialised at runtime via connect().)
-    chunkSizeWarningLimit: 8000,
+    // The SDK chunk carries the inlined WASM payload (about 13 MB); it is
+    // loaded on the first network fetch only. Raise the warning ceiling so CI
+    // logs stay readable.
+    chunkSizeWarningLimit: 16000,
   },
 }));

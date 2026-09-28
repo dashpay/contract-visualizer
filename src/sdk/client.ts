@@ -6,6 +6,7 @@
 
 import { EvoSDK } from '@dashevo/evo-sdk';
 import type { AppConfig, Network } from '../config';
+import { pool } from './pool';
 
 const CONNECT_OPTS = {
   proofs: true,
@@ -30,8 +31,6 @@ function createSdk(config: AppConfig): EvoSDK {
   }
 }
 
-const pool = new Map<string, Promise<EvoSDK>>();
-
 function poolKey(config: AppConfig): string {
   return config.network === 'devnet' ? `devnet:${config.devnetName ?? ''}` : config.network;
 }
@@ -39,7 +38,7 @@ function poolKey(config: AppConfig): string {
 /** Get a connected SDK for the configured network (memoised). */
 export async function getConnectedSdk(config: AppConfig): Promise<EvoSDK> {
   const key = poolKey(config);
-  let pending = pool.get(key);
+  let pending = pool.get(key) as Promise<EvoSDK> | undefined;
   if (!pending) {
     pending = (async () => {
       const sdk = createSdk(config);
@@ -52,11 +51,6 @@ export async function getConnectedSdk(config: AppConfig): Promise<EvoSDK> {
     pool.set(key, pending);
   }
   return pending;
-}
-
-/** Reset all pooled connections (used when switching networks from the UI). */
-export function resetConnections(): void {
-  pool.clear();
 }
 
 export type { Network };

@@ -35,6 +35,9 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Validate bundled examples with the platform parser
+        run: npm run validate:examples
+
       - name: Build
         # Optional: VITE_CONTRACT_ID / VITE_NETWORK repository variables pre-load
         # a contract on first paint. Unset = the app opens to the input screen.

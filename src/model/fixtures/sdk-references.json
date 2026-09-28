@@ -1,0 +1,154 @@
+{
+  "app-connect": {},
+  "dash-qa": {},
+  "dashpay": {},
+  "dpns": {},
+  "keyword-search": {},
+  "marketplace": {
+    "giftCard": [
+      {
+        "path": "$creatorId",
+        "type": "permanentDocument"
+      },
+      {
+        "path": "shopId",
+        "type": "permanentDocument"
+      }
+    ],
+    "listing": [
+      {
+        "path": "shopId",
+        "type": "permanentDocument"
+      }
+    ],
+    "offer": [
+      {
+        "path": "listingId",
+        "type": "deletableDocument"
+      },
+      {
+        "path": "sellerId",
+        "type": "identityPublicKey"
+      },
+      {
+        "path": "buyerKeyId",
+        "type": "identityPublicKey"
+      }
+    ],
+    "report": [
+      {
+        "path": "listingId",
+        "type": "deletableDocument"
+      }
+    ],
+    "review": [
+      {
+        "path": "subjectId",
+        "type": "anyOf"
+      }
+    ],
+    "shop": [
+      {
+        "path": "dpnsDomainId",
+        "type": "deletableDocument"
+      },
+      {
+        "path": "payoutTokenId",
+        "type": "token"
+      }
+    ]
+  },
+  "moderation-charters": {
+    "addedModerator": [
+      {
+        "path": "electedCharterId",
+        "type": "permanentDocument"
+      },
+      {
+        "path": "memberId",
+        "type": "permanentDocument"
+      }
+    ],
+    "electedCharter": [
+      {
+        "path": "targetContractId",
+        "type": "contract"
+      },
+      {
+        "path": "submittedCharterId",
+        "type": "permanentDocument"
+      },
+      {
+        "path": "members[]",
+        "type": "permanentDocument"
+      }
+    ],
+    "joinRequest": [
+      {
+        "path": "submittedCharterId",
+        "type": "permanentDocument"
+      },
+      {
+        "path": "recipientId",
+        "type": "identityPublicKey"
+      },
+      {
+        "path": "senderKeyId",
+        "type": "identityPublicKey"
+      }
+    ],
+    "removedModerator": [
+      {
+        "path": "electedCharterId",
+        "type": "permanentDocument"
+      },
+      {
+        "path": "memberId",
+        "type": "listElement"
+      }
+    ],
+    "resignationRequest": [
+      {
+        "path": "$ownerId",
+        "type": "anyOf"
+      },
+      {
+        "path": "electedCharterId",
+        "type": "permanentDocument"
+      },
+      {
+        "path": "recipientId",
+        "type": "identityPublicKey"
+      },
+      {
+        "path": "senderKeyId",
+        "type": "identityPublicKey"
+      }
+    ],
+    "submittedCharter": [
+      {
+        "path": "targetContractId",
+        "type": "contract"
+      },
+      {
+        "path": "reasons[]",
+        "type": "permanentDocument"
+      }
+    ]
+  },
+  "withdrawals": {},
+  "yappr-likes": {
+    "like": [
+      {
+        "path": "postId",
+        "type": "permanentDocument"
+      }
+    ],
+    "tip": [
+      {
+        "path": "postId",
+        "type": "permanentDocument"
+      }
+    ]
+  }
+}

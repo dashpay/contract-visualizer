@@ -1,31 +1,291 @@
+import type { ReactNode } from 'react';
 import type { Selection } from '../flow/selection';
-import type { ContractModel } from '../model/types';
+import type { ContractModel, Entity, Field, RefExpr, RefTarget, Reference, Relationship } from '../model/types';
 import { relationshipFields } from '../model/relationships';
+import { describeTarget } from '../model/references';
+import { constraintPaths, renderCondition } from '../model/constraints';
+import {
+  BOOK,
+  documentTypeChips,
+  fieldChips,
+  formatDuration,
+  indexChips,
+  refHref,
+  type Chip,
+} from '../model/describe';
 
 interface Props {
   selection: Selection;
   model: ContractModel;
   hiddenEdges: Set<string>;
   onToggleEdge: (id: string) => void;
+  onOpenContract: (contractId: string) => void;
   onClose: () => void;
 }
 
-function Constraints({ c }: { c: Record<string, unknown> }) {
-  const entries = Object.entries(c);
+function Value({ v }: { v: unknown }) {
+  if (Array.isArray(v)) return <>{v.map((x) => (typeof x === 'object' ? JSON.stringify(x) : String(x))).join(', ')}</>;
+  if (v !== null && typeof v === 'object') return <>{JSON.stringify(v)}</>;
+  return <>{String(v)}</>;
+}
+
+function Constraints({ c }: { c: Record<string, unknown> | undefined }) {
+  const entries = Object.entries(c ?? {});
   if (entries.length === 0) return null;
   return (
     <dl className="cv-constraints">
       {entries.map(([k, v]) => (
         <div key={k}>
           <dt>{k}</dt>
-          <dd className="cv-mono">{Array.isArray(v) ? v.join(', ') : String(v)}</dd>
+          <dd className="cv-mono">
+            <Value v={v} />
+          </dd>
         </div>
       ))}
     </dl>
   );
 }
 
-export function InspectorPanel({ selection, model, hiddenEdges, onToggleEdge, onClose }: Props) {
+function ChipList({ chips }: { chips: Chip[] }) {
+  if (!chips.length) return null;
+  return (
+    <ul className="cv-explain">
+      {chips.map((c) => (
+        <li key={c.text}>
+          <span className={`cv-chip cv-tone-${c.tone}`}>{c.text}</span> {c.detail}{' '}
+          {c.href && (
+            <a href={c.href} target="_blank" rel="noreferrer" className="cv-book">
+              book ↗
+            </a>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <>
+      <div className="cv-inspector-sub">{title}</div>
+      {children}
+    </>
+  );
+}
+
+function TargetDetails({ t }: { t: RefTarget }) {
+  const rows: Array<[string, ReactNode]> = [];
+  if (t.contractId) rows.push(['contract', <span className="cv-mono cv-break">{t.contractId}</span>]);
+  if (t.lookup) {
+    rows.push([
+      'lookup',
+      <>
+        unique index <code>{t.lookup.index}</code>, key{' '}
+        {Object.entries(t.lookup.keys)
+          .map(([k, v]) => `${k} ← ${v === '.' ? 'this value' : v}`)
+          .join(', ')}
+      </>,
+    ]);
+  }
+  if (t.propertyAgreement) {
+    rows.push([
+      'must agree',
+      <>
+        {Object.entries(t.propertyAgreement)
+          .map(([here, there]) => `${here} (here) = ${there} (there)`)
+          .join('; ')}
+      </>,
+    ]);
+  }
+  if (t.keyIdProperty) rows.push(['key id in', <code>{t.keyIdProperty}</code>]);
+  if (t.identityProperty) rows.push(['key of', <code>{t.identityProperty}</code>]);
+  if (t.keyRequirements?.purpose) rows.push(['key purpose', t.keyRequirements.purpose]);
+  if (t.keyRequirements?.boundTo) rows.push(['key bound to', <code>{t.keyRequirements.boundTo}</code>]);
+  if (t.contractRequirements) {
+    for (const [k, v] of Object.entries(t.contractRequirements)) {
+      rows.push([k, typeof v === 'number' && /Seconds/.test(k) ? formatDuration(v) : String(v)]);
+    }
+  }
+  if (!rows.length) return null;
+  return (
+    <dl className="cv-constraints">
+      {rows.map(([k, v]) => (
+        <div key={k}>
+          <dt>{k}</dt>
+          <dd>{v}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function ExprView({ expr, depth = 0 }: { expr: RefExpr; depth?: number }) {
+  if (expr.op === 'target') {
+    return (
+      <div className="cv-ref-target" style={{ marginLeft: depth * 10 }}>
+        <p>
+          <code>{expr.target.type}</code>: {describeTarget(expr.target)}.{' '}
+          <a href={refHref(expr.target)} target="_blank" rel="noreferrer" className="cv-book">
+            book ↗
+          </a>
+        </p>
+        <TargetDetails t={expr.target} />
+      </div>
+    );
+  }
+  return (
+    <div className="cv-ref-expr" style={{ marginLeft: depth * 10 }}>
+      <p className="cv-muted">
+        <code>{expr.op}</code>: {expr.op === 'anyOf' ? 'at least one of these holds' : 'every one of these holds'}{' '}
+        <a href={`${BOOK}contract-keywords/refers-to-expressions.html`} target="_blank" rel="noreferrer" className="cv-book">
+          book ↗
+        </a>
+      </p>
+      {expr.operands.map((o, i) => (
+        <ExprView key={i} expr={o} depth={depth + 1} />
+      ))}
+    </div>
+  );
+}
+
+function ReferenceView({ reference }: { reference: Reference }) {
+  const where =
+    reference.site === 'owner'
+      ? 'The identity writing a document (its owner) must meet this reference.'
+      : reference.site === 'creator'
+        ? 'The identity creating a document must meet this reference; later owners need not.'
+        : reference.site === 'element'
+          ? 'Every element of this typed array must meet this reference.'
+          : 'The value must meet this reference when a document is written.';
+  return (
+    <Section title={reference.site === 'owner' ? 'ownerRefersTo' : reference.site === 'creator' ? 'creatorRefersTo' : 'refersTo'}>
+      <p className="cv-muted">{where}</p>
+      <ExprView expr={reference.expr} />
+      <details className="cv-raw">
+        <summary>declaration</summary>
+        <pre className="cv-mono">{JSON.stringify(reference.raw, null, 2)}</pre>
+      </details>
+    </Section>
+  );
+}
+
+function FieldView({ entity, field }: { entity: Entity; field: Field }) {
+  const e = field.encryptedFor;
+  return (
+    <>
+      <h2 className="cv-mono">{field.path}</h2>
+      <p className="cv-muted">
+        {entity.name} · {field.ref ? `${field.ref} (${field.type})` : field.type}
+        {field.required ? ' · required' : ' · optional'}
+        {field.unique ? ' · unique' : field.indexed ? ' · indexed' : ''}
+        {field.system ? ' · system' : ''}
+      </p>
+      {field.description && <p>{field.description}</p>}
+      <ChipList chips={fieldChips(field)} />
+      {field.reference && <ReferenceView reference={field.reference} />}
+      {e && (
+        <Section title="encryptedFor">
+          <p className="cv-muted">
+            Ciphertext for the identity in <code>{e.recipient}</code>
+            {e.recipientKey ? (
+              <>
+                , to its key <code>{e.recipientKey}</code>
+              </>
+            ) : null}
+            {e.senderKey ? (
+              <>
+                , from the writer's key <code>{e.senderKey}</code>
+              </>
+            ) : null}
+            {e.scheme ? <>, scheme {e.scheme}</> : null}.{' '}
+            <a href={`${BOOK}contract-keywords/encrypted-for.html`} target="_blank" rel="noreferrer" className="cv-book">
+              book ↗
+            </a>
+          </p>
+        </Section>
+      )}
+      {Object.keys(field.constraints).length > 0 && (
+        <Section title="constraints">
+          <Constraints c={field.constraints} />
+        </Section>
+      )}
+      {field.items && Object.keys(field.items).length > 0 && (
+        <Section title="each element (items)">
+          <Constraints c={field.items} />
+        </Section>
+      )}
+    </>
+  );
+}
+
+function EntityView({ entity, model }: { entity: Entity; model: ContractModel }) {
+  const chips = documentTypeChips(entity);
+  const shown = new Set(['ttl', 'indexOnly', 'documentsMutable', 'canBeDeleted', 'canBeDeletedByModerators', 'canBeDeletedByModeratorsFor', 'creationRestrictionMode', 'transferable', 'tradeMode', 'documentsKeepHistory', 'keepsTransferHistory', 'keepsPurchaseHistory', 'keepsPricingHistory', 'actionFees', 'tokenCost', 'documentsCountable', 'documentsSummable', 'documentsAverageable', 'rangeCountable', 'rangeSummable', 'rangeAverageable', 'signatureSecurityLevelRequirement', 'requiresIdentityEncryptionBoundedKey', 'requiresIdentityDecryptionBoundedKey']);
+  const rest = Object.fromEntries(Object.entries(entity.config).filter(([k]) => !shown.has(k)));
+  const outgoing = model.relationships.filter((r) => r.from === entity.name && r.kind === 'declared').length;
+  const incoming = model.relationships.filter((r) => r.to === entity.name && r.kind === 'declared').length;
+  return (
+    <>
+      <h2>{entity.name}</h2>
+      <p className="cv-muted">
+        {entity.config.indexOnly === true ? 'index-only document type' : 'document type'} · {entity.fields.length} fields ·{' '}
+        {entity.indices.length} indexes · {outgoing} references out · {incoming} in
+      </p>
+      {entity.description && <p>{entity.description}</p>}
+      <ChipList chips={chips} />
+      {entity.typeReferences.map((r) => (
+        <ReferenceView key={r.path} reference={r} />
+      ))}
+      {Object.keys(rest).length > 0 && (
+        <Section title="other settings">
+          <Constraints c={rest} />
+        </Section>
+      )}
+    </>
+  );
+}
+
+function RelationshipView({
+  rel,
+  model,
+  hidden,
+  onToggle,
+}: {
+  rel: Relationship;
+  model: ContractModel;
+  hidden: boolean;
+  onToggle: () => void;
+}) {
+  const { fromField } = relationshipFields(model, rel);
+  const target = model.entities.find((e) => e.name === rel.to)?.name ?? model.externals.find((n) => n.id === rel.to)?.label ?? rel.to;
+  return (
+    <>
+      <h2>{rel.kind === 'declared' ? 'reference' : 'inferred relationship'}</h2>
+      <p className="cv-mono">
+        {rel.from}.{rel.fromField} → {target}
+        {rel.toField !== '$id' ? ` (${rel.toField})` : ''}
+      </p>
+      <p className="cv-muted">
+        {rel.kind === 'declared'
+          ? 'declared in the contract · checked by the platform when a document is written'
+          : `inferred from names · ${rel.confidence} confidence · not stated by the contract`}
+      </p>
+      <p>{rel.reason}.</p>
+      {rel.target && <TargetDetails t={rel.target} />}
+      {fromField && (
+        <p className="cv-muted cv-mono">
+          {fromField.path} : {fromField.type}
+          {fromField.required ? '' : ' (optional)'}
+        </p>
+      )}
+      <button type="button" className="cv-primary" onClick={onToggle}>
+        {hidden ? 'Show this edge' : 'Hide this edge'}
+      </button>
+    </>
+  );
+}
+
+export function InspectorPanel({ selection, model, hiddenEdges, onToggleEdge, onOpenContract, onClose }: Props) {
   if (!selection) return null;
 
   return (
@@ -34,34 +294,9 @@ export function InspectorPanel({ selection, model, hiddenEdges, onToggleEdge, on
         ✕
       </button>
 
-      {selection.kind === 'entity' && (
-        <>
-          <h2>{selection.entity.name}</h2>
-          <p className="cv-muted">document type · {selection.entity.fields.length} fields · {selection.entity.indices.length} indexes</p>
-          <dl className="cv-constraints">
-            {Object.entries(selection.entity.config).map(([k, v]) => (
-              <div key={k}>
-                <dt>{k}</dt>
-                <dd className="cv-mono">{String(v)}</dd>
-              </div>
-            ))}
-          </dl>
-        </>
-      )}
+      {selection.kind === 'entity' && <EntityView entity={selection.entity} model={model} />}
 
-      {selection.kind === 'field' && (
-        <>
-          <h2 className="cv-mono">{selection.field.name}</h2>
-          <p className="cv-muted">
-            {selection.entity.name} · {selection.field.type}
-            {selection.field.required ? ' · required' : ''}
-            {selection.field.unique ? ' · unique' : selection.field.indexed ? ' · indexed' : ''}
-            {selection.field.system ? ' · system' : ''}
-          </p>
-          {selection.field.description && <p>{selection.field.description}</p>}
-          <Constraints c={selection.field.constraints} />
-        </>
-      )}
+      {selection.kind === 'field' && <FieldView entity={selection.entity} field={selection.field} />}
 
       {selection.kind === 'index' && (
         <>
@@ -76,29 +311,72 @@ export function InspectorPanel({ selection, model, hiddenEdges, onToggleEdge, on
               </li>
             ))}
           </ol>
+          <ChipList chips={indexChips(selection.index)} />
+          {Object.keys(selection.index.options).length > 0 && (
+            <Section title="index keywords">
+              <Constraints c={selection.index.options} />
+            </Section>
+          )}
+        </>
+      )}
+
+      {selection.kind === 'constraint' && (
+        <>
+          <h2 className="cv-mono">{selection.name}</h2>
+          <p className="cv-muted">{selection.entity.name} · property constraint</p>
+          <p className="cv-formula cv-mono">{renderCondition(selection.rule)}</p>
+          <p className="cv-muted">
+            Every created or replaced document must satisfy this rule. It reads{' '}
+            {constraintPaths(selection.rule).map((p, i) => (
+              <span key={p}>
+                {i ? ', ' : ''}
+                <code>{p}</code>
+              </span>
+            ))}
+            .{' '}
+            <a href={`${BOOK}contract-keywords/property-constraints.html`} target="_blank" rel="noreferrer" className="cv-book">
+              book ↗
+            </a>
+          </p>
+          <details className="cv-raw">
+            <summary>rule</summary>
+            <pre className="cv-mono">{JSON.stringify(selection.rule, null, 2)}</pre>
+          </details>
         </>
       )}
 
       {selection.kind === 'relationship' && (
+        <RelationshipView
+          rel={selection.relationship}
+          model={model}
+          hidden={hiddenEdges.has(selection.relationship.id)}
+          onToggle={() => onToggleEdge(selection.relationship.id)}
+        />
+      )}
+
+      {selection.kind === 'external' && (
         <>
-          <h2>relationship</h2>
-          <p className="cv-mono">
-            {selection.relationship.from}.{selection.relationship.fromField} → {selection.relationship.to}.
-            {selection.relationship.toField}
-          </p>
+          <h2>{selection.node.label}</h2>
           <p className="cv-muted">
-            inferred · {selection.relationship.confidence} confidence
+            {selection.node.kind === 'externalDocument' ? 'a document type of another contract' : 'a platform object'}
           </p>
-          <p>{selection.relationship.reason}</p>
-          {(() => {
-            const { fromField } = relationshipFields(model, selection.relationship);
-            return fromField ? (
-              <p className="cv-muted cv-mono">{fromField.name} : {fromField.type}</p>
-            ) : null;
-          })()}
-          <button type="button" className="cv-primary" onClick={() => onToggleEdge(selection.relationship.id)}>
-            {hiddenEdges.has(selection.relationship.id) ? 'Show this edge' : 'Hide this edge'}
-          </button>
+          {selection.node.contractId && <p className="cv-mono cv-break">{selection.node.contractId}</p>}
+          <div className="cv-inspector-sub">referenced by</div>
+          <ul className="cv-explain">
+            {model.relationships
+              .filter((r) => r.to === selection.node.id)
+              .map((r) => (
+                <li key={r.id} className="cv-mono">
+                  {r.from}.{r.fromField}
+                  {r.target?.keyRequirements?.purpose ? ` (${r.target.keyRequirements.purpose} key)` : ''}
+                </li>
+              ))}
+          </ul>
+          {selection.node.contractId && selection.node.contractId !== '?' && (
+            <button type="button" className="cv-primary" onClick={() => onOpenContract(selection.node.contractId!)}>
+              Open this contract
+            </button>
+          )}
         </>
       )}
     </aside>
