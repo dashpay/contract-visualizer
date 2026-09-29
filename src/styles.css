@@ -472,6 +472,37 @@ button { font: inherit; cursor: pointer; }
 .cv-layout-notes { margin: 0 0 2px 26px; padding: 0; list-style: none; font-size: 11.5px; color: var(--text-muted); }
 .cv-layout-notes li::before { content: '· '; }
 
+/* What a document costs */
+.cv-entity-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.cv-cost-line { font-size: 13px; margin: 8px 0 2px; }
+.cv-link-button { background: none; border: none; color: var(--accent); padding: 0; cursor: pointer; font: inherit; text-decoration: underline; }
+.cv-cost h3 { font-size: 13.5px; margin: 16px 0 6px; }
+.cv-cost .cv-modal-head h2 { padding-right: 32px; }
+.cv-cost-price { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 12.5px; margin: 6px 0 10px; }
+.cv-cost-price input { width: 90px; margin-left: 4px; background: var(--bg); border: 1px solid var(--border-strong); border-radius: 4px; color: var(--text); padding: 2px 6px; }
+.cv-cost-totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.cv-cost-totals > div { background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; }
+.cv-cost-totals strong { font-size: 16px; display: block; margin: 4px 0; }
+.cv-cost-detail { font-size: 11.5px; }
+.cv-cost-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.cv-cost-table th { text-align: left; font-weight: 500; color: var(--text-muted); padding: 2px 6px; }
+.cv-cost-table td { vertical-align: top; padding: 5px 6px; border-top: 1px solid var(--border); }
+.cv-cost-table td:not(:first-child), .cv-cost-table th:not(:first-child) { text-align: right; white-space: nowrap; }
+.cv-cost-tag { font-size: 10.5px; color: var(--text-muted); border: 1px solid var(--border-strong); border-radius: 3px; padding: 0 4px; margin-left: 4px; }
+.cv-cost-assumptions { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; margin-top: 8px; }
+.cv-cost-assumptions input, .cv-cost-assumptions select, .cv-cost-fields input[type='number'] { margin-left: 6px; background: var(--bg); border: 1px solid var(--border-strong); border-radius: 4px; color: var(--text); padding: 2px 6px; width: 90px; }
+.cv-cost-assumptions select { width: auto; }
+.cv-cost-charges { margin: 0; padding-left: 18px; font-size: 12.5px; }
+.cv-cost-fields { list-style: none; margin: 0; padding: 0; font-size: 12.5px; }
+.cv-cost-fields li { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 5px 0; border-top: 1px solid var(--border); }
+.cv-cost-length { display: flex; align-items: center; gap: 6px; }
+.cv-cost-length input[type='range'] { width: 140px; }
+.cv-cost-stale { opacity: 0.6; transition: opacity 0.15s; }
+@media (max-width: 640px) {
+  .cv-cost-table td:not(:first-child), .cv-cost-table th:not(:first-child) { white-space: normal; }
+  .cv-cost-length input[type='range'] { width: 100px; }
+}
+
 /* The JSON of a document type, an index or a property */
 .cv-json { margin: 12px 0 4px; border-top: 1px solid var(--border); padding-top: 8px; }
 .cv-json summary { cursor: pointer; font-size: 12.5px; font-weight: 500; }

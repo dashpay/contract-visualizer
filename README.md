@@ -84,6 +84,31 @@ The layout is computed by Drive's own rules (`documentTypeLayout` in `@dashevo/e
 writes by a Drive test, and needs no network. It needs an SDK release that includes it; until
 the dependency is bumped the panel says so.
 
+## What a document costs
+
+Selecting a document type shows about what creating one of its documents costs, in Dash and
+dollars; **Cost** (or *details*) opens the full breakdown:
+
+- two totals: the first document with a set of index values (it creates their trees) and a later
+  document with the same values (it adds only its own entries);
+- the storage, byte for byte: the document itself, and **each index on its own**, with the part it
+  shares with other indexes (a common prefix, paid once) and the part only it adds; trees prepaid
+  for other types' preallocated indexes; a `ttl` type's expiration entry;
+- the processing: the signature and identity fetch (exact) and the writes (estimated for a number
+  of stored documents you can change, with the signing key type and a fee increase);
+- what the contract charges: its action fee, a token cost, a contest's vote fund;
+- what deleting the document refunds;
+- **Adjust the document**: an on/off switch for each optional field and a length for each
+  variable-size one (strings, byte arrays, arrays). Fixed-size fields (identifiers, numbers,
+  booleans, dates) need no input. By default each variable field sits at the middle of its bounds,
+  the size Drive's own fee estimates assume, and each optional field is present.
+
+The numbers come from Drive (`documentCreateCost` in `@dashevo/evo-sdk`), which prices every
+element an insert writes with GroveDB's byte formulas and is held to the fees Drive charges by its
+tests; see [What a Document Costs](https://dashpay.github.io/platform/fees/document-cost.html).
+The Dash price comes from CoinGecko (Coinbase if that fails), and you can type your own. Like the
+layout, it needs an SDK release that includes it; until then the inspector says so.
+
 ## Compare two versions (contract updates)
 
 **Compare** in the toolbar diagrams two versions of a contract at once: the union of both,
@@ -183,11 +208,14 @@ One-time: repo settings → **Pages → Source: GitHub Actions**.
 src/
   config.ts              # contract id / example / link + network + view resolution (URL / localStorage / env)
   urlSource.ts           # ?url= and pasted links: GitHub blob -> raw, fetch + parse
+  price.ts               # the Dash price in dollars (CoinGecko, then Coinbase) and a typed-in override
   github.ts              # a PR's changed JSON files at merge base and head (GitHub REST API)
   sdk/
     client.ts            # Evo SDK trusted connection, memoised per network
     contract.ts          # any source (id, link, example) -> contract JSON -> ContractModel
+    local.ts             # the SDK functions that run from a contract's JSON alone
     layout.ts            # documentTypeLayout through the SDK (feature-detected)
+    cost.ts              # documentCreateCost through the SDK (feature-detected)
     pool.ts              # pooled connections, resettable without loading the SDK
   examples/              # bundled example contracts + registry
   model/
@@ -198,6 +226,7 @@ src/
     describe.ts          # keyword chips and plain-language descriptions
     diff.ts              # compare two versions: changes, statuses, the union model
     layout.ts            # a document type's GroveDB layout (from the SDK) and its display helpers
+    cost.ts              # what a document costs (from the SDK) and its formatting helpers
     jsonTokens.ts        # JSON syntax highlighting tokens for the inspector
     updateRules.ts       # each keyword's update rule, per the book, with its error code
     types.ts
@@ -210,7 +239,7 @@ src/
     Canvas.tsx           # React Flow canvas, legend, export/re-layout panel
     selection.ts, exportImage.ts
   components/            # Toolbar, InspectorPanel, ContractMetaPanel, PasteContractModal,
-                         # CompareModal, ChangesPanel, LayoutPanel
+                         # CompareModal, ChangesPanel, LayoutPanel, CostPanel, CostLine
   App.tsx, main.tsx, styles.css
 scripts/
   validate-examples.mjs  # examples through DataContract.fromJSON(…, true, 14)

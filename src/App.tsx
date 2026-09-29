@@ -15,6 +15,7 @@ import { InspectorPanel } from './components/InspectorPanel';
 import { PasteContractModal } from './components/PasteContractModal';
 import { ContractMetaPanel } from './components/ContractMetaPanel';
 import { ChangesPanel } from './components/ChangesPanel';
+import { CostPanel } from './components/CostPanel';
 import { LayoutPanel } from './components/LayoutPanel';
 import { CompareModal, type CompareSpec } from './components/CompareModal';
 import { EXAMPLES, exampleId, exampleKey } from './examples';
@@ -73,6 +74,7 @@ export default function App() {
   const [compareInitialPr, setCompareInitialPr] = useState<string | undefined>(undefined);
   const [focus, setFocus] = useState<{ id: string; n: number } | undefined>(undefined);
   const [layoutView, setLayoutView] = useState<{ documentType: string; json: unknown } | null>(null);
+  const [costView, setCostView] = useState<{ documentType: string; json: unknown } | null>(null);
   // The JSON of the contract on screen (both sides in compare mode), for the GroveDB layout panel.
   const contractJsonRef = useRef<unknown>(null);
   const compareJsonRef = useRef<{ base: unknown; head: unknown } | null>(null);
@@ -305,17 +307,34 @@ export default function App() {
     [load, network, devnetName],
   );
 
-  /** Open the GroveDB layout of a document type: the head's version in compare mode, else the base's. */
-  const openLayout = useCallback((documentType: string) => {
+  /** The contract JSON of a document type: the head's version in compare mode, else the base's. */
+  const contractJsonFor = useCallback((documentType: string): unknown => {
     const compare = compareJsonRef.current;
     const d = diffRef.current;
-    const json = compare && d
+    return compare && d
       ? d.head.entities.some((e) => e.name === documentType)
         ? compare.head
         : compare.base
       : contractJsonRef.current;
-    if (json) setLayoutView({ documentType, json });
   }, []);
+
+  /** Open the GroveDB layout of a document type. */
+  const openLayout = useCallback(
+    (documentType: string) => {
+      const json = contractJsonFor(documentType);
+      if (json) setLayoutView({ documentType, json });
+    },
+    [contractJsonFor],
+  );
+
+  /** Open what a document of a type costs. */
+  const openCost = useCallback(
+    (documentType: string) => {
+      const json = contractJsonFor(documentType);
+      if (json) setCostView({ documentType, json });
+    },
+    [contractJsonFor],
+  );
 
   const onNetwork = useCallback((n: Network) => {
     setNetwork(n);
@@ -482,12 +501,17 @@ export default function App() {
               onClose={() => setSelection(null)}
               diff={diff ?? undefined}
               onShowLayout={openLayout}
+              contractJsonFor={contractJsonFor}
+              onShowCost={openCost}
             />
           )}
         </div>
 
         {layoutView && (
           <LayoutPanel documentType={layoutView.documentType} contractJson={layoutView.json} onClose={() => setLayoutView(null)} />
+        )}
+        {costView && (
+          <CostPanel documentType={costView.documentType} contractJson={costView.json} onClose={() => setCostView(null)} />
         )}
         {pasteOpen && (
           <PasteContractModal onApply={applyPaste} onClose={() => setPasteOpen(false)} error={pasteError} />

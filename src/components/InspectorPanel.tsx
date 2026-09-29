@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { key2, type Change, type ContractDiff } from '../model/diff';
 import { ChangeBody } from './ChangesPanel';
+import { CostLine } from './CostLine';
 import { JsonView } from './JsonView';
 import type { Selection } from '../flow/selection';
 import type { ContractModel, Entity, Field, RefExpr, RefTarget, Reference, Relationship } from '../model/types';
@@ -29,6 +30,10 @@ interface Props {
   diff?: ContractDiff;
   /** Open the GroveDB layout panel for a document type. */
   onShowLayout?: (documentType: string) => void;
+  /** The contract JSON a document type's cost is computed from. */
+  contractJsonFor?: (documentType: string) => unknown;
+  /** Open the cost panel for a document type. */
+  onShowCost?: (documentType: string) => void;
 }
 
 function changeFor(diff: ContractDiff | undefined, selection: Selection): Change | undefined {
@@ -274,13 +279,18 @@ function EntityView({
   entity,
   model,
   onShowLayout,
+  contractJsonFor,
+  onShowCost,
   version,
 }: {
   entity: Entity;
   model: ContractModel;
   onShowLayout?: (documentType: string) => void;
+  contractJsonFor?: (documentType: string) => unknown;
+  onShowCost?: (documentType: string) => void;
   version?: string;
 }) {
+  const costJson = contractJsonFor?.(entity.name);
   const chips = documentTypeChips(entity);
   const shown = new Set(['ttl', 'indexOnly', 'documentsMutable', 'canBeDeleted', 'canBeDeletedByModerators', 'canBeDeletedByModeratorsFor', 'creationRestrictionMode', 'transferable', 'tradeMode', 'documentsKeepHistory', 'keepsTransferHistory', 'keepsPurchaseHistory', 'keepsPricingHistory', 'actionFees', 'tokenCost', 'documentsCountable', 'documentsSummable', 'documentsAverageable', 'rangeCountable', 'rangeSummable', 'rangeAverageable', 'signatureSecurityLevelRequirement', 'requiresIdentityEncryptionBoundedKey', 'requiresIdentityDecryptionBoundedKey']);
   const rest = Object.fromEntries(Object.entries(entity.config).filter(([k]) => !shown.has(k)));
@@ -294,11 +304,21 @@ function EntityView({
         {entity.indices.length} indexes · {outgoing} references out · {incoming} in
       </p>
       {entity.description && <p>{entity.description}</p>}
-      {onShowLayout && (
-        <button type="button" className="cv-primary cv-layout-button" onClick={() => onShowLayout(entity.name)}>
-          GroveDB layout
-        </button>
+      {costJson != null && onShowCost && (
+        <CostLine documentType={entity.name} contractJson={costJson} onShowCost={() => onShowCost(entity.name)} />
       )}
+      <div className="cv-entity-actions">
+        {onShowLayout && (
+          <button type="button" className="cv-primary cv-layout-button" onClick={() => onShowLayout(entity.name)}>
+            GroveDB layout
+          </button>
+        )}
+        {costJson != null && onShowCost && (
+          <button type="button" className="cv-primary cv-layout-button" onClick={() => onShowCost(entity.name)}>
+            Cost
+          </button>
+        )}
+      </div>
       <ChipList chips={chips} />
       {entity.typeReferences.map((r) => (
         <ReferenceView key={r.path} reference={r} />
@@ -353,7 +373,18 @@ function RelationshipView({
   );
 }
 
-export function InspectorPanel({ selection, model, hiddenEdges, onToggleEdge, onOpenContract, onClose, diff, onShowLayout }: Props) {
+export function InspectorPanel({
+  selection,
+  model,
+  hiddenEdges,
+  onToggleEdge,
+  onOpenContract,
+  onClose,
+  diff,
+  onShowLayout,
+  contractJsonFor,
+  onShowCost,
+}: Props) {
   if (!selection) return null;
   const change = changeFor(diff, selection);
   const version = jsonVersion(diff, selection);
@@ -367,7 +398,14 @@ export function InspectorPanel({ selection, model, hiddenEdges, onToggleEdge, on
       {change && <ChangeSection change={change} />}
 
       {selection.kind === 'entity' && (
-        <EntityView entity={selection.entity} model={model} onShowLayout={onShowLayout} version={version} />
+        <EntityView
+          entity={selection.entity}
+          model={model}
+          onShowLayout={onShowLayout}
+          contractJsonFor={contractJsonFor}
+          onShowCost={onShowCost}
+          version={version}
+        />
       )}
 
       {selection.kind === 'field' && <FieldView entity={selection.entity} field={selection.field} version={version} />}
