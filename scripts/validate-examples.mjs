@@ -6,7 +6,9 @@
 //   npm run validate:examples -- --write # regenerate src/model/fixtures/sdk-references.json
 //
 // DataContract.fromJSON(json, fullValidation = true, 14) runs the protocol
-// version 14 meta-schema and parser (try_from_schema) from @dashevo/evo-sdk.
+// version 14 parser (try_from_schema) as @dashevo/evo-sdk compiles it. The SDK
+// is built without dpp's `validation` feature, so the document meta-schema and
+// the parser checks gated behind that feature do not run here.
 
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';

@@ -1,7 +1,8 @@
-// Bundled example contracts. They render offline and each one passes full
-// validation by the protocol version 14 parser (DataContract.fromJSON with
-// full validation in @dashevo/evo-sdk 4.2), so what they show is what the
-// platform accepts.
+// Bundled example contracts. They render offline and each one passes the
+// protocol version 14 contract parser as @dashevo/evo-sdk 4.2 compiles it
+// (DataContract.fromJSON with full validation). The SDK is built without
+// dpp's `validation` feature, so the document meta-schema, and the parser
+// checks gated behind it, are not part of that check.
 
 import marketplace from './marketplace.json';
 import moderationCharters from './moderation-charters.json';

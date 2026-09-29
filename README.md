@@ -60,6 +60,30 @@ Every keyword links to its chapter of [The Dash Platform Book](https://dashpay.g
 - **Property constraints** get their own compartment, rendered as formulas: `rewardSplit.leader + rewardSplit.equal + rewardSplit.actions = 100`.
 - **Contract metadata** (top-left): id, owner, version, timestamps, keywords, description, config, **moderation** (lists, who moderates, election windows, moderated types), `schemaDefs`, and every type's chips.
 
+## How a document type is stored (GroveDB layout)
+
+Select a document type and click **GroveDB layout** in the inspector to see every tree and
+element Drive writes for it, under `[64, contract id, 1, <type>]`: the documents by id (with
+their revisions when the type keeps history) and, for each index, the property and value
+trees down to the `[0]` where the index ends. Each layer shows:
+
+- its key (a fixed key, or `‹…›` for one key per document or value; a time window level
+  shows its grid, `‹$createdAt window: 1d every 1h›`);
+- its element, coloured by what it totals: a plain tree, a count, sum or count-and-sum tree
+  (provable or not), a ranked indexed tree with its axes, or a value / reference;
+- the wrapper a continuation tree gets under a counting or summing value tree
+  (`NonCounted`, `NotSummed`, `NotCountedOrSummed`);
+- the indexes that use it, and conditions: the tree a unique index falls back to when a
+  value is null, `nullSearchable`, `skipIfAbsent`, preallocated indexes, time window overlap;
+- a `↗` link to that kind of layer in the
+  [GroveDB structure viewer](https://dashpay.github.io/grovedb-structure-viewer/), which holds
+  the general description (element flags, Merk shapes, ...).
+
+The layout is computed by Drive's own rules (`documentTypeLayout` in `@dashevo/evo-sdk`,
+[dashpay/platform#5153](https://github.com/dashpay/platform/pull/5153)), held to what Drive
+writes by a Drive test, and needs no network. It needs an SDK release that includes it; until
+the dependency is bumped the panel says so.
+
 ## Compare two versions (contract updates)
 
 **Compare** in the toolbar diagrams two versions of a contract at once: the union of both,
@@ -97,8 +121,10 @@ and a file (which usually leaves defaults out) compare equal.
 
 ## Examples
 
-Bundled, offline, and each one passes full validation by the protocol version 14 parser
-(`DataContract.fromJSON(json, true, 14)` from `@dashevo/evo-sdk`), checked in CI:
+Bundled, offline, and each one passes the protocol version 14 contract parser as
+`@dashevo/evo-sdk` compiles it (`DataContract.fromJSON(json, true, 14)`), checked in CI.
+The SDK is built without dpp's `validation` feature, so this does not run the document
+meta-schema or the parser checks gated behind that feature:
 
 | Key | What it shows |
 |---|---|
@@ -160,7 +186,9 @@ src/
   github.ts              # a PR's changed JSON files at merge base and head (GitHub REST API)
   sdk/
     client.ts            # Evo SDK trusted connection, memoised per network
-    contract.ts          # fetch contract (toJSON) -> ContractModel, or a bundled example
+    contract.ts          # any source (id, link, example) -> contract JSON -> ContractModel
+    layout.ts            # documentTypeLayout through the SDK (feature-detected)
+    pool.ts              # pooled connections, resettable without loading the SDK
   examples/              # bundled example contracts + registry
   model/
     introspect.ts        # document schemas -> ContractModel (fields, indexes, keywords)
@@ -169,6 +197,7 @@ src/
     constraints.ts       # propertyConstraints -> formulas
     describe.ts          # keyword chips and plain-language descriptions
     diff.ts              # compare two versions: changes, statuses, the union model
+    layout.ts            # a document type's GroveDB layout (from the SDK) and its display helpers
     jsonTokens.ts        # JSON syntax highlighting tokens for the inspector
     updateRules.ts       # each keyword's update rule, per the book, with its error code
     types.ts
@@ -181,7 +210,7 @@ src/
     Canvas.tsx           # React Flow canvas, legend, export/re-layout panel
     selection.ts, exportImage.ts
   components/            # Toolbar, InspectorPanel, ContractMetaPanel, PasteContractModal,
-                         # CompareModal, ChangesPanel
+                         # CompareModal, ChangesPanel, LayoutPanel
   App.tsx, main.tsx, styles.css
 scripts/
   validate-examples.mjs  # examples through DataContract.fromJSON(…, true, 14)
