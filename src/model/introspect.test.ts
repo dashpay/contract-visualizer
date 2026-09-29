@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isIdentifierProp, metaFromContractJson, modelFromPastedJson } from './introspect';
+import { isIdentifierProp, metaFromContractJson, modelFromPastedJson, writtenProperty } from './introspect';
 import dashQa from '../examples/dash-qa.json';
 import marketplace from '../examples/marketplace.json';
 import charters from '../examples/moderation-charters.json';
@@ -163,5 +163,25 @@ describe('modelFromPastedJson — input shapes', () => {
   it('throws on unrecognised input', () => {
     expect(() => modelFromPastedJson({ foo: 1 })).toThrow();
     expect(() => modelFromPastedJson(42)).toThrow();
+  });
+});
+
+describe('writtenProperty', () => {
+  const schema = {
+    properties: {
+      label: { type: 'string', maxLength: 63, position: 0 },
+      records: { type: 'object', properties: { identity: { type: 'array', byteArray: true } }, position: 1 },
+    },
+  };
+
+  it('returns a property as written, an object with its members', () => {
+    expect(writtenProperty(schema, 'label')).toEqual({ type: 'string', maxLength: 63, position: 0 });
+    expect(writtenProperty(schema, 'records')).toBe(schema.properties.records);
+    expect(writtenProperty(schema, 'records.identity')).toEqual({ type: 'array', byteArray: true });
+  });
+
+  it('returns undefined for a path the schema does not have', () => {
+    expect(writtenProperty(schema, '$ownerId')).toBeUndefined();
+    expect(writtenProperty(schema, 'label.inner')).toBeUndefined();
   });
 });

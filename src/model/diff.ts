@@ -75,7 +75,8 @@ export interface ContractDiff {
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === 'object' && !Array.isArray(v);
-const key2 = (entity: string, part: string) => `${entity}::${part}`;
+/** The key of a field, index or rule in `DiffStatus`. */
+export const key2 = (entity: string, part: string) => `${entity}::${part}`;
 const strings = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
 
 /** Structural keys of a document type, diffed on their own. */

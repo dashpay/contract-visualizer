@@ -1,10 +1,12 @@
 import type { ReactNode } from 'react';
-import type { Change, ContractDiff } from '../model/diff';
+import { key2, type Change, type ContractDiff } from '../model/diff';
 import { ChangeBody } from './ChangesPanel';
 import { CostLine } from './CostLine';
+import { JsonView } from './JsonView';
 import type { Selection } from '../flow/selection';
 import type { ContractModel, Entity, Field, RefExpr, RefTarget, Reference, Relationship } from '../model/types';
 import { relationshipFields } from '../model/relationships';
+import { writtenProperty } from '../model/introspect';
 import { describeTarget } from '../model/references';
 import { constraintPaths, renderCondition } from '../model/constraints';
 import {
@@ -50,6 +52,20 @@ function changeFor(diff: ContractDiff | undefined, selection: Selection): Change
 }
 
 const KIND_LABEL = { added: 'added in head', removed: 'removed in head', changed: 'changed' } as const;
+
+/**
+ * In compare mode, which version's JSON the inspector shows: the head's,
+ * or the base's for what the head removed.
+ */
+function jsonVersion(diff: ContractDiff | undefined, selection: Selection): string | undefined {
+  if (!diff || !selection) return undefined;
+  const entity = 'entity' in selection ? selection.entity.name : undefined;
+  const removed =
+    (entity !== undefined && diff.status.entities[entity] === 'removed') ||
+    (selection.kind === 'field' && diff.status.fields[key2(selection.entity.name, selection.field.path)] === 'removed') ||
+    (selection.kind === 'index' && diff.status.indices[key2(selection.entity.name, selection.index.name)] === 'removed');
+  return removed ? 'as in base' : 'as in head';
+}
 
 function ChangeSection({ change }: { change: Change }) {
   return (
@@ -206,7 +222,10 @@ function ReferenceView({ reference }: { reference: Reference }) {
   );
 }
 
-function FieldView({ entity, field }: { entity: Entity; field: Field }) {
+function FieldView({ entity, field, version }: { entity: Entity; field: Field; version?: string }) {
+  // A property the head removed is not in the merged type's (head) schema:
+  // show it as the base wrote it, without an object's members.
+  const json = writtenProperty(entity.schema, field.path) ?? (field.system ? undefined : field.written);
   const e = field.encryptedFor;
   return (
     <>
@@ -251,6 +270,7 @@ function FieldView({ entity, field }: { entity: Entity; field: Field }) {
           <Constraints c={field.items} />
         </Section>
       )}
+      {json && <JsonView value={json} title="JSON of the property" note={version} />}
     </>
   );
 }
@@ -261,12 +281,14 @@ function EntityView({
   onShowLayout,
   contractJsonFor,
   onShowCost,
+  version,
 }: {
   entity: Entity;
   model: ContractModel;
   onShowLayout?: (documentType: string) => void;
   contractJsonFor?: (documentType: string) => unknown;
   onShowCost?: (documentType: string) => void;
+  version?: string;
 }) {
   const costJson = contractJsonFor?.(entity.name);
   const chips = documentTypeChips(entity);
@@ -306,6 +328,7 @@ function EntityView({
           <Constraints c={rest} />
         </Section>
       )}
+      <JsonView value={entity.schema} title="JSON of the document type" note={version} />
     </>
   );
 }
@@ -364,6 +387,7 @@ export function InspectorPanel({
 }: Props) {
   if (!selection) return null;
   const change = changeFor(diff, selection);
+  const version = jsonVersion(diff, selection);
 
   return (
     <aside className="cv-inspector" aria-label="Details">
@@ -380,10 +404,11 @@ export function InspectorPanel({
           onShowLayout={onShowLayout}
           contractJsonFor={contractJsonFor}
           onShowCost={onShowCost}
+          version={version}
         />
       )}
 
-      {selection.kind === 'field' && <FieldView entity={selection.entity} field={selection.field} />}
+      {selection.kind === 'field' && <FieldView entity={selection.entity} field={selection.field} version={version} />}
 
       {selection.kind === 'index' && (
         <>
@@ -404,6 +429,7 @@ export function InspectorPanel({
               <Constraints c={selection.index.options} />
             </Section>
           )}
+          <JsonView value={selection.index.written} title="JSON of the index" note={version} />
         </>
       )}
 
