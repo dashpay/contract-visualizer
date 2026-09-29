@@ -142,6 +142,7 @@ parser against (`-- --write` regenerates it after an SDK bump or a new example).
 
 - **Drag** entities; pan/zoom; minimap; **re-layout** (elk auto-layout) button.
 - Click any field / index / constraint / entity / edge / external node for details in the inspector.
+- **JSON**: the inspector of a document type, an index or a property ends with its JSON exactly as the contract writes it (an object property with its members), collapsed until opened, with a **Copy** button. In compare mode it is the head's JSON, or the base's for what the head removed, and says which.
 - Legend (bottom) with filters: declared, inferred, platform objects.
 - **Export** the diagram to PNG or SVG.
 - Deep links: `?contract=<id>&network=testnet&view=uml`, `?contract=<id>&network=devnet&devnet=moutai`, `?url=<link to a contract JSON file>`, `?example=<key>` (and `?demo=1`), shareable; the URL updates as you load contracts. For example, a contract file in a pull request: `https://dashpay.github.io/contract-visualizer/?url=https://github.com/<owner>/<repo>/blob/<commit>/contracts/<file>.json`.
@@ -197,6 +198,7 @@ src/
     describe.ts          # keyword chips and plain-language descriptions
     diff.ts              # compare two versions: changes, statuses, the union model
     layout.ts            # a document type's GroveDB layout (from the SDK) and its display helpers
+    jsonTokens.ts        # JSON syntax highlighting tokens for the inspector
     updateRules.ts       # each keyword's update rule, per the book, with its error code
     types.ts
     fixtures/            # the SDK's reading of the examples' references
