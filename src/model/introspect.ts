@@ -76,6 +76,20 @@ const CONSTRAINT_KEYS = [
 
 const IDENTIFIER_MEDIA = 'application/x.dash.dpp.identifier';
 
+/**
+ * A property exactly as the document type writes it, members included, by
+ * its dotted path (property names hold no dots). Undefined for a path the
+ * schema does not have, such as a system field.
+ */
+export function writtenProperty(schema: Record<string, unknown>, path: string): Record<string, unknown> | undefined {
+  let prop: unknown = schema;
+  for (const name of path.split('.')) {
+    const properties = isObj(prop) ? prop.properties : undefined;
+    prop = isObj(properties) ? properties[name] : undefined;
+  }
+  return isObj(prop) ? prop : undefined;
+}
+
 export function isIdentifierProp(prop: Record<string, unknown> | undefined): boolean {
   if (!prop) return false;
   if (prop.type !== 'array' || prop.byteArray !== true) return false;
