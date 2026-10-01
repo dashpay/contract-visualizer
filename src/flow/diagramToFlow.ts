@@ -154,10 +154,11 @@ export function edgeLabel(rel: Relationship, view: ViewKind): string {
   if (rel.kind === 'inferred') return view === 'merise' ? '(0,n) — (1,1) ?' : 'inferred';
   const t = rel.target;
   const parts = [multiplicity(rel, view)];
-  if (t?.lookup) parts.push(`via ${t.lookup.index}`);
-  else if (t?.inList) parts.push(`∈ ${t.inList}`);
+  if (t?.inList) parts.push(`∈ ${t.inList}`);
+  else if (t?.findBy) parts.push(`via ${rel.toField}`);
   else if (t?.type === 'identityPublicKey') parts.push(`${t.keyRequirements?.purpose ?? ''} key`.trim());
   if (t?.type === 'deletableDocument') parts.push('deletable');
+  if (t?.type === 'moderatedDocument') parts.push('moderated');
   if (rel.expression) parts.push(`${rel.expression.op} ${rel.expression.branch}/${rel.expression.of}`);
   return parts.join(' · ');
 }

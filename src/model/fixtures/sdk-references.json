@@ -104,7 +104,7 @@
       },
       {
         "path": "memberId",
-        "type": "listElement"
+        "type": "permanentDocument"
       }
     ],
     "resignationRequest": [

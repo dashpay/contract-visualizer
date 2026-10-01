@@ -11,7 +11,7 @@ const build = (c: unknown) => withRelationships(modelFromPastedJson(c));
 
 describe('declared references agree with the platform parser', () => {
   // sdk-references.json is DataContract.documentReferences from
-  // @dashevo/evo-sdk 4.2.0-beta.4 (full validation, protocol version 14) for
+  // @dashevo/evo-sdk 5.0.0-beta.1 (full validation, protocol version 14) for
   // each bundled example: [{ path, type }] per document type.
   const expected = sdkReferences as Record<string, Record<string, Array<{ path: string; type: string }>>>;
 
@@ -37,15 +37,16 @@ describe('declared relationships — moderation charters', () => {
   it('draws an anyOf ownerRefersTo as one edge per operand', () => {
     const edges = find('resignationRequest', '$ownerId');
     expect(edges.map((e) => [e.to, e.target?.type, e.expression?.branch, e.expression?.of])).toEqual([
-      ['electedCharter', 'listElement', 1, 2],
+      ['electedCharter', 'permanentDocument', 1, 2],
       ['addedModerator', 'deletableDocument', 2, 2],
     ]);
     expect(edges.every((e) => e.site === 'owner')).toBe(true);
   });
 
-  it('points a list element at the list and a lookup at its index', () => {
+  it('points an inList at the list and a findBy at the unique index it resolves to', () => {
     const [member] = find('removedModerator', 'memberId');
     expect(member).toMatchObject({ to: 'electedCharter', toField: 'members', optional: false });
+    expect(member.target).toMatchObject({ type: 'permanentDocument', findBy: { $id: 'electedCharterId' }, inList: 'members' });
     const [elem] = find('electedCharter', 'members');
     expect(elem).toMatchObject({ to: 'joinRequest', toField: 'bySubmittedCharter', site: 'element' });
   });

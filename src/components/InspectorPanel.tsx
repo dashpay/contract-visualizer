@@ -7,7 +7,7 @@ import type { Selection } from '../flow/selection';
 import type { ContractModel, Entity, Field, RefExpr, RefTarget, Reference, Relationship } from '../model/types';
 import { relationshipFields } from '../model/relationships';
 import { writtenProperty } from '../model/introspect';
-import { describeTarget } from '../model/references';
+import { describeTarget, sourceText } from '../model/references';
 import { constraintPaths, renderCondition } from '../model/constraints';
 import {
   BOOK,
@@ -129,27 +129,29 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 function TargetDetails({ t }: { t: RefTarget }) {
   const rows: Array<[string, ReactNode]> = [];
   if (t.contractId) rows.push(['contract', <span className="cv-mono cv-break">{t.contractId}</span>]);
-  if (t.lookup) {
+  if (t.findBy) {
     rows.push([
-      'lookup',
+      t.inList ? 'holder' : 'findBy',
       <>
-        unique index <code>{t.lookup.index}</code>, key{' '}
-        {Object.entries(t.lookup.keys)
-          .map(([k, v]) => `${k} ← ${v === '.' ? 'this value' : v}`)
+        {Object.entries(t.findBy)
+          .map(([k, v]) => `${k} ← ${sourceText(v)}`)
           .join(', ')}
       </>,
     ]);
   }
-  if (t.propertyAgreement) {
+  if (t.inList) rows.push(['inList', <code>{t.inList}</code>]);
+  if (t.where) {
     rows.push([
-      'must agree',
+      'where',
       <>
-        {Object.entries(t.propertyAgreement)
-          .map(([here, there]) => `${here} (here) = ${there} (there)`)
+        {Object.entries(t.where)
+          .map(([there, here]) => `${there} (there) = ${here} (here)`)
           .join('; ')}
       </>,
     ]);
   }
+  if (t.minimumAgeBlocks !== undefined) rows.push(['minimumAgeBlocks', `the commitment is at least ${t.minimumAgeBlocks} block${t.minimumAgeBlocks === 1 ? '' : 's'} old`]);
+  if (t.consume) rows.push(['consume', 'the create deletes the commitment']);
   if (t.keyIdProperty) rows.push(['key id in', <code>{t.keyIdProperty}</code>]);
   if (t.identityProperty) rows.push(['key of', <code>{t.identityProperty}</code>]);
   if (t.keyRequirements?.purpose) rows.push(['key purpose', t.keyRequirements.purpose]);
@@ -292,7 +294,7 @@ function EntityView({
 }) {
   const costJson = contractJsonFor?.(entity.name);
   const chips = documentTypeChips(entity);
-  const shown = new Set(['ttl', 'indexOnly', 'documentsMutable', 'canBeDeleted', 'canBeDeletedByModerators', 'canBeDeletedByModeratorsFor', 'creationRestrictionMode', 'transferable', 'tradeMode', 'documentsKeepHistory', 'keepsTransferHistory', 'keepsPurchaseHistory', 'keepsPricingHistory', 'actionFees', 'tokenCost', 'documentsCountable', 'documentsSummable', 'documentsAverageable', 'rangeCountable', 'rangeSummable', 'rangeAverageable', 'signatureSecurityLevelRequirement', 'requiresIdentityEncryptionBoundedKey', 'requiresIdentityDecryptionBoundedKey']);
+  const shown = new Set(['ttl', 'indexOnly', 'documentsMutable', 'canBeDeleted', 'moderatorAbilities', 'creationRestrictionMode', 'transferable', 'tradeMode', 'documentsKeepHistory', 'keepsTransferHistory', 'keepsPurchaseHistory', 'keepsPricingHistory', 'actionFees', 'tokenCost', 'documentsCountable', 'documentsSummable', 'documentsAverageable', 'rangeCountable', 'rangeSummable', 'rangeAverageable', 'signatureSecurityLevelRequirement', 'requiresIdentityEncryptionBoundedKey', 'requiresIdentityDecryptionBoundedKey']);
   const rest = Object.fromEntries(Object.entries(entity.config).filter(([k]) => !shown.has(k)));
   const outgoing = model.relationships.filter((r) => r.from === entity.name && r.kind === 'declared').length;
   const incoming = model.relationships.filter((r) => r.to === entity.name && r.kind === 'declared').length;

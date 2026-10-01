@@ -1,5 +1,5 @@
 // Bundled example contracts. They render offline and each one passes the
-// protocol version 14 contract parser as @dashevo/evo-sdk 4.2 compiles it
+// protocol version 14 contract parser as @dashevo/evo-sdk 5.0 compiles it
 // (DataContract.fromJSON with full validation). The SDK is built without
 // dpp's `validation` feature, so the document meta-schema, and the parser
 // checks gated behind it, are not part of that check.
@@ -30,7 +30,7 @@ export const EXAMPLES: Example[] = [
     key: 'marketplace',
     title: 'Marketplace showcase',
     summary:
-      'An illustrative contract (not registered anywhere) that uses the protocol 14 keywords together: references to documents, identities, keys, tokens and a DPNS name, anyOf, a creatorRefersTo rule, ttl, immutable, requiredSince, encryptedFor, transient, action fees, moderation, time-range and ranked indexes.',
+      'An illustrative contract (not registered anywhere) that uses the protocol 14 keywords together: references to documents, identities, keys, tokens and a DPNS name, anyOf, findBy in a creatorRefersTo rule, ttl, immutable with and without a condition, generatedFrom, requiredSince, encryptedFor, transient, action fees, moderator abilities, time-range, integer-range and ranked indexes.',
     group: 'Protocol 14 features',
     contract: marketplace,
   },
@@ -38,7 +38,7 @@ export const EXAMPLES: Example[] = [
     key: 'moderation-charters',
     title: 'Moderation charters',
     summary:
-      'The system contract behind elected moderation teams: lookups through unique indexes, list elements, property agreements, an anyOf ownerRefersTo, encrypted join requests and a contested seat.',
+      'The system contract behind elected moderation teams: findBy through unique indexes, inList, where, an anyOf ownerRefersTo, encrypted join requests and a contested seat.',
     group: 'Protocol 14 features',
     contract: moderationCharters,
     system: true,

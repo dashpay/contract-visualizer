@@ -40,7 +40,6 @@ const STRUCTURAL_KEYS = new Set([
   'indices',
   'transient',
   'immutable',
-  'immutableAllowSetting',
   'entryPayload',
   'ownerRefersTo',
   'creatorRefersTo',
@@ -174,9 +173,31 @@ interface Marks {
   indexed: Set<string>;
   unique: Set<string>;
   immutable: Set<string>;
-  allowSetting: Set<string>;
+  /** The condition of an `immutable` entry `{ property, when }`, by property. */
+  immutableWhen: Map<string, unknown>;
   transient: Set<string>;
   entryPayload: Set<string>;
+  /** moderatorAbilities.changeFields. */
+  moderatorOnly: Set<string>;
+}
+
+/** `immutable` entries: a property name, or `{ property, when }` frozen while the condition holds. */
+export function immutableEntries(v: unknown): { names: Set<string>; when: Map<string, unknown> } {
+  const names = new Set<string>();
+  const when = new Map<string, unknown>();
+  for (const entry of Array.isArray(v) ? v : []) {
+    if (typeof entry === 'string') names.add(entry);
+    else if (isObj(entry) && typeof entry.property === 'string') {
+      names.add(entry.property);
+      when.set(entry.property, entry.when);
+    }
+  }
+  return { names, when };
+}
+
+function generatedFrom(v: unknown): Field['generatedFrom'] {
+  if (!isObj(v) || typeof v.function !== 'string') return undefined;
+  return { function: v.function, params: Array.isArray(v.params) ? v.params.filter((p): p is string => typeof p === 'string') : [] };
 }
 
 /** Push one property (and, for an object, its members) onto `out`, depth-first in position order. */
@@ -229,7 +250,9 @@ function pushProperties(
       distinctFrom: distinct,
       encryptedFor: encryptedFor(prop.encryptedFor),
       immutable: top && marks.immutable.has(name) ? true : undefined,
-      allowSettingOnce: top && marks.allowSetting.has(name) ? true : undefined,
+      immutableWhen: top ? marks.immutableWhen.get(name) : undefined,
+      generatedFrom: generatedFrom(prop.generatedFrom),
+      moderatorOnly: top && marks.moderatorOnly.has(name) ? true : undefined,
       transient: top && marks.transient.has(name) ? true : undefined,
       requiredSince: typeof prop.requiredSince === 'number' ? prop.requiredSince : undefined,
       entryPayload: top && marks.entryPayload.has(name) ? true : undefined,
@@ -247,14 +270,28 @@ function buildEntity(name: string, schema: Schema, defs: Record<string, unknown>
   const required = stringList(schema.required);
   const indices = parseIndices(schema);
 
+  const immutable = immutableEntries(schema.immutable);
+  const abilities = isObj(schema.moderatorAbilities) ? schema.moderatorAbilities : {};
   const marks: Marks = {
     indexed: new Set(),
     unique: new Set(),
-    immutable: stringList(schema.immutable),
-    allowSetting: stringList(schema.immutableAllowSetting),
+    immutable: immutable.names,
+    immutableWhen: immutable.when,
     transient: stringList(schema.transient),
     entryPayload: stringList(schema.entryPayload),
+    moderatorOnly: stringList(abilities.changeFields),
   };
+  // An index property `<reference>.<field>` reads the field of the document
+  // the top-level reference points at (derived index properties).
+  for (const idx of indices) {
+    const derived = idx.fields
+      .map((f) => f.field)
+      .filter((path) => {
+        const dot = path.indexOf('.');
+        return dot > 0 && isObj(properties[path.slice(0, dot)]?.refersTo);
+      });
+    if (derived.length) idx.derived = derived;
+  }
   const terminals = new Set<string>();
   for (const idx of indices) {
     for (const f of idx.fields) {

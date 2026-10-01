@@ -2,14 +2,20 @@
 // @dashevo/evo-sdk returns it (computed by Drive, platform #5153), and the
 // helpers the layout panel draws it with.
 
+import { compactNumber } from './describe';
+
 export interface LayoutKey {
-  kind: 'fixed' | 'documentId' | 'revisionTime' | 'propertyValue' | 'timeRangeBucket' | 'memberKey';
+  kind: 'fixed' | 'documentId' | 'revisionTime' | 'propertyValue' | 'timeRangeBucket' | 'integerRangeBucket' | 'memberKey';
   hex?: string;
   label?: string;
   property?: string;
   rangeSeconds?: number;
   stepSeconds?: number;
   phaseSeconds?: number;
+  /** integerRangeBucket: the window length, the distance between starts and the shift, in the property's units. */
+  range?: number;
+  step?: number;
+  phase?: number;
   components?: string[];
 }
 
@@ -66,6 +72,8 @@ export function keyText(key: LayoutKey): string {
       return `‹${key.property} value›`;
     case 'timeRangeBucket':
       return `‹${key.property} window: ${duration(key.rangeSeconds)} every ${duration(key.stepSeconds)}›`;
+    case 'integerRangeBucket':
+      return `‹${key.property} band: ${compactNumber(key.range)} every ${compactNumber(key.step)}›`;
     case 'memberKey':
       return `‹${(key.components ?? []).join(' + ')}›`;
     default:
@@ -86,6 +94,8 @@ export function keyDetail(key: LayoutKey): string {
       return `One key per distinct value of ${key.property}, serialized for ordering; an absent or null value is the empty key.`;
     case 'timeRangeBucket':
       return `One key per window start of ${key.property}: windows of ${duration(key.rangeSeconds)} starting every ${duration(key.stepSeconds)}${key.phaseSeconds ? `, shifted by ${duration(key.phaseSeconds)}` : ''}.`;
+    case 'integerRangeBucket':
+      return `One key per window start of ${key.property} that holds a document: windows ${key.range?.toLocaleString('en-US')} wide starting every ${key.step?.toLocaleString('en-US')}${key.phase ? `, shifted by ${key.phase.toLocaleString('en-US')}` : ''}, encoded like the property.`;
     case 'memberKey':
       return `One key per entry: the values of ${(key.components ?? []).join(', ')} concatenated (32 bytes for $ownerId).`;
     default:

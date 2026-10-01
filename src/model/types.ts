@@ -10,21 +10,31 @@ export interface RefTarget {
     | 'contract'
     | 'token'
     | 'permanentDocument'
+    | 'moderatedDocument'
     | 'deletableDocument'
     | 'identityPublicKey'
-    | 'listElement'
     | string;
   documentType?: string;
   /** The contract holding documentType, when it is not this one. */
   contractId?: string;
-  propertyAgreement?: Record<string, string>;
-  lookup?: { index: string; keys: Record<string, string> };
+  /** findBy: referenced property -> its source ('.', '$ownerId', a referring path, or a function). */
+  findBy?: Record<string, FindBySource>;
+  /** where: referenced property -> the referring property (or '$ownerId') it must equal. */
+  where?: Record<string, string>;
+  /** inList: the list on the document findBy { $id: … } names. */
   inList?: string;
+  /** Beside a findBy function: the commitment is at least this many blocks old. */
+  minimumAgeBlocks?: number;
+  /** Beside a findBy function: the create deletes the commitment it reveals. */
+  consume?: boolean;
   keyIdProperty?: string;
   identityProperty?: string;
   keyRequirements?: { purpose?: string; boundTo?: string };
   contractRequirements?: Record<string, unknown>;
 }
+
+/** One findBy source: a path, '.', '$ownerId', or a hash of params (commit and reveal). */
+export type FindBySource = string | { function: string; params: unknown[] };
 
 /** A refersTo declaration: one target, or an anyOf / allOf of declarations. */
 export type RefExpr =
@@ -80,8 +90,12 @@ export interface Field {
   encryptedFor?: EncryptedFor;
   /** Listed in the document type's `immutable`. */
   immutable?: boolean;
-  /** Listed in `immutableAllowSetting`: may be set once while it has no value. */
-  allowSettingOnce?: boolean;
+  /** The condition of an `immutable` entry `{ property, when }`: frozen for any replace it holds for. */
+  immutableWhen?: unknown;
+  /** generatedFrom: the platform generates the value with a system function of other properties. */
+  generatedFrom?: { function: string; params: string[] };
+  /** Listed in `moderatorAbilities.changeFields`: only the contract's moderators write it. */
+  moderatorOnly?: boolean;
   /** Listed in `transient`: validated on the transition, never stored. */
   transient?: boolean;
   /** requiredSince: the contract version from which the property is required. */
@@ -103,6 +117,8 @@ export interface Index {
   unique: boolean;
   /** Every index keyword besides name / properties / unique (contested, countable, timeRange, terminal, …). */
   options: Record<string, unknown>;
+  /** Index properties `<reference>.<field>` that read a value of the referenced document. */
+  derived?: string[];
   /** The index as written. */
   written: Record<string, unknown>;
 }
@@ -145,7 +161,7 @@ export interface Relationship {
   to: string;
   /** Field path on `from` ('$ownerId' / '$creatorId' for a document type reference). */
   fromField: string;
-  /** What is matched on `to`: '$id', a lookup index name, an inList path, a key, … */
+  /** What is matched on `to`: '$id', the unique index a findBy resolves to, an inList path, a key, … */
   toField: string;
   confidence: Confidence;
   /** Human-readable explanation. */

@@ -1,9 +1,9 @@
 // Read refersTo declarations (protocol version 14) and turn them into
 // declared relationships plus the external nodes they point at.
 //
-// A declaration is one target ({ type, documentType, lookup, … }) or an
-// anyOf / allOf of declarations. It sits on a property, on each element of a
-// typed array (`items.refersTo`), or on the document type itself
+// A declaration is one target ({ type, documentType, findBy, where, … }) or
+// an anyOf / allOf of declarations. It sits on a property, on each element of
+// a typed array (`items.refersTo`), or on the document type itself
 // (`ownerRefersTo` / `creatorRefersTo`, which constrain the writer or creator).
 
 import type {
@@ -11,6 +11,7 @@ import type {
   Entity,
   ExternalNode,
   Field,
+  FindBySource,
   RefExpr,
   RefSite,
   RefTarget,
@@ -29,16 +30,29 @@ const asStringMap = (v: unknown): Record<string, string> | undefined => {
   return out;
 };
 
+function asFindBy(v: unknown): Record<string, FindBySource> | undefined {
+  if (!isObj(v)) return undefined;
+  const out: Record<string, FindBySource> = {};
+  for (const [k, val] of Object.entries(v)) {
+    if (typeof val === 'string') out[k] = val;
+    else if (isObj(val) && typeof val.function === 'string') {
+      out[k] = { function: val.function, params: Array.isArray(val.params) ? val.params : [] };
+    }
+  }
+  return out;
+}
+
 function parseTarget(raw: Obj): RefTarget {
   const t: RefTarget = { type: String(raw.type) };
   if (typeof raw.documentType === 'string') t.documentType = raw.documentType;
   if (typeof raw.contractId === 'string') t.contractId = raw.contractId;
-  const agreement = asStringMap(raw.propertyAgreement);
-  if (agreement) t.propertyAgreement = agreement;
-  if (isObj(raw.lookup) && typeof raw.lookup.index === 'string') {
-    t.lookup = { index: raw.lookup.index, keys: asStringMap(raw.lookup.keys) ?? {} };
-  }
+  const findBy = asFindBy(raw.findBy);
+  if (findBy) t.findBy = findBy;
+  const where = asStringMap(raw.where);
+  if (where) t.where = where;
   if (typeof raw.inList === 'string') t.inList = raw.inList;
+  if (typeof raw.minimumAgeBlocks === 'number') t.minimumAgeBlocks = raw.minimumAgeBlocks;
+  if (raw.consume === true) t.consume = true;
   if (typeof raw.keyIdProperty === 'string') t.keyIdProperty = raw.keyIdProperty;
   if (typeof raw.identityProperty === 'string') t.identityProperty = raw.identityProperty;
   if (isObj(raw.keyRequirements)) {
@@ -92,7 +106,7 @@ const PLATFORM_NODES: Record<string, ExternalNode> = {
   identityPublicKey: { id: 'platform:identityPublicKey', kind: 'identityPublicKey', label: 'Identity key' },
 };
 
-const DOCUMENT_TARGETS = new Set(['permanentDocument', 'deletableDocument', 'listElement']);
+const DOCUMENT_TARGETS = new Set(['permanentDocument', 'moderatedDocument', 'deletableDocument']);
 
 export function isDocumentTarget(t: RefTarget): boolean {
   return DOCUMENT_TARGETS.has(t.type);
@@ -121,16 +135,65 @@ function targetNode(
   return node.id;
 }
 
+/** A findBy key computed by a function: a commit and reveal. */
+export function findByFunction(t: RefTarget): { property: string; function: string; params: unknown[] } | undefined {
+  for (const [property, source] of Object.entries(t.findBy ?? {})) {
+    if (typeof source !== 'string') return { property, ...source };
+  }
+  return undefined;
+}
+
+/** findBy without inList: the document is found through a unique index, not by its id. */
+export function findsByIndex(t: RefTarget): boolean {
+  return !!t.findBy && !t.inList;
+}
+
+/**
+ * The unique index a findBy resolves to: the one over exactly the properties
+ * it names, in any order. Only known for a document type of this contract.
+ */
+export function findByIndex(t: RefTarget, model: ContractModel): string | undefined {
+  if (!findsByIndex(t) || (t.contractId && t.contractId !== model.contractId)) return undefined;
+  const keys = new Set(Object.keys(t.findBy ?? {}));
+  const entity = model.entities.find((e) => e.name === t.documentType);
+  const index = entity?.indices.find(
+    (i) => i.unique && i.fields.length === keys.size && i.fields.every((f) => keys.has(f.field)),
+  );
+  return index?.name;
+}
+
 /** What the reference matches on the target, for the edge's toField. */
-function matchedOn(t: RefTarget): string {
-  if (t.lookup) return t.lookup.index;
+function matchedOn(t: RefTarget, model: ContractModel): string {
   if (t.inList) return t.inList;
+  if (t.findBy) return findByIndex(t, model) ?? `(${Object.keys(t.findBy).join(', ')})`;
   if (t.type === 'identityPublicKey') return 'key';
   return '$id';
 }
 
+/** One findBy source in words. */
+export function sourceText(source: FindBySource): string {
+  if (typeof source !== 'string') return `${source.function}(${source.params.map((p) => (isObj(p) && 'const' in p ? JSON.stringify(p.const) : String(p))).join(', ')})`;
+  if (source === '.') return 'this value';
+  if (source === '$ownerId') return 'the writer';
+  return source;
+}
+
+const findByText = (t: RefTarget) =>
+  Object.entries(t.findBy ?? {})
+    .map(([k, v]) => `${k} = ${sourceText(v)}`)
+    .join(', ');
+
+/** The where entries in words: what the referenced document must hold. */
+export function whereText(t: RefTarget): string {
+  return Object.entries(t.where ?? {})
+    .map(([there, here]) => `its ${there} = ${here === '$ownerId' ? 'the writer' : here}`)
+    .join(', ');
+}
+
 export function describeTarget(t: RefTarget): string {
-  const where = t.contractId ? ` of contract ${t.contractId}` : '';
+  const of = t.contractId ? ` of contract ${t.contractId}` : '';
+  const where = t.where ? ` with ${whereText(t)}` : '';
+  const fn = findByFunction(t);
   switch (t.type) {
     case 'identity':
       return 'the id of an existing identity';
@@ -139,15 +202,22 @@ export function describeTarget(t: RefTarget): string {
     case 'token':
       return 'the id of an existing token';
     case 'permanentDocument':
-      return t.lookup
-        ? `a "${t.documentType}" document${where} found through its unique index "${t.lookup.index}" (a type whose documents are never deleted)`
-        : `the id of a "${t.documentType}" document${where}, a type whose documents are never deleted`;
+      if (t.inList) {
+        const holder = typeof t.findBy?.$id === 'string' ? ` whose id is in "${t.findBy.$id}"` : '';
+        return `one of the identifiers in "${t.inList}" of the "${t.documentType}" document${of}${holder}${where}`;
+      }
+      return t.findBy
+        ? `a "${t.documentType}" document${of} found by ${findByText(t)}${where} (a type whose documents are never deleted)`
+        : `the id of a "${t.documentType}" document${of}${where}, a type whose documents are never deleted`;
+    case 'moderatedDocument':
+      return `the id of a "${t.documentType}" document${of}${where}, a type whose documents leave only through a moderator's recorded removal; a replace may keep it once removed`;
     case 'deletableDocument':
-      return t.lookup
-        ? `a "${t.documentType}" document${where} found through its unique index "${t.lookup.index}"; checked again on every replace`
-        : `the id of a "${t.documentType}" document${where} that can be deleted; checked again on every replace`;
-    case 'listElement':
-      return `one of the identifiers in "${t.inList}" of a "${t.documentType}" document${where}`;
+      if (fn) {
+        return `a "${t.documentType}" commitment${of} found by ${findByText(t)}${where}, revealed on the create alone${t.consume ? ' and deleted by it' : ''}`;
+      }
+      return t.findBy
+        ? `a "${t.documentType}" document${of} found by ${findByText(t)}${where}; checked again on every replace`
+        : `the id of a "${t.documentType}" document${of}${where} that can be deleted; checked again on every replace`;
     case 'identityPublicKey':
       return t.keyIdProperty
         ? `the id of an identity whose key with the id in "${t.keyIdProperty}" exists and is not disabled`
@@ -202,7 +272,7 @@ export function declaredRelationships(model: ContractModel): {
           from: entity.name,
           to,
           fromField,
-          toField: matchedOn(target),
+          toField: matchedOn(target, model),
           confidence: 'high',
           reason: `${prefix}${who} must be ${describeTarget(target)}`,
           site: ref.site,

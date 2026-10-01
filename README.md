@@ -6,7 +6,7 @@ tables: fields, **indexes**, the settings of each type, and the **references** b
 them, on a pan/zoom canvas.
 
 - **Read-only.** Queries are proof-verified via the [Evo SDK](https://www.npmjs.com/package/@dashevo/evo-sdk) (trusted mode). No wallet, no writes.
-- **Protocol version 14 aware.** Reads the full Platform 4.2 contract language: declared references (`refersTo`), typed arrays, `ttl`, `immutable`, `propertyConstraints`, action fees, moderation, ranked and time-range indexes, index-only types and the rest. See [What the diagram shows](#what-the-diagram-shows).
+- **Protocol version 14 aware.** Reads the full Platform 5.0 contract language: declared references (`refersTo`), typed arrays, `ttl`, `immutable`, `propertyConstraints`, action fees, moderation, ranked, time-range and integer-range indexes, index-only types and the rest. See [What the diagram shows](#what-the-diagram-shows).
 - **Two notations**, toggle any time: **UML** class diagram and **Merise** (conceptual) view.
 - **Static.** Vite + React + TS, WASM inlined → deploys to GitHub Pages with no backend.
 - **Offline-capable.** Paste contract JSON or open a bundled example without any network.
@@ -36,8 +36,9 @@ edges, coloured by what they point at, leaving from the exact field that declare
 | `refersTo` on a typed array's `items` | from the array field, multiplicity `0..∗` / `(0,n)` |
 | `ownerRefersTo` / `creatorRefersTo` | from the `$ownerId` / `$creatorId` row, labelled `«owner»` / `«creator»` |
 | `anyOf` / `allOf` | one edge per operand, labelled `anyOf 1/2`, `anyOf 2/2`, … |
-| `lookup` | labelled `via <index>` |
-| `listElement` | ends on the list field of the target, labelled `∈ <list>` |
+| `findBy` | labelled `via <index>`, the unique index of the target over exactly the properties `findBy` names |
+| `inList` | ends on the list field of the target, labelled `∈ <list>` |
+| `moderatedDocument` | labelled `moderated` (the target leaves only through a moderator's recorded removal) |
 | `deletableDocument` | labelled `deletable` (checked again on every replace) |
 
 An optional field gives `0..1` / `(0,1)`, a required one `1` / `(1,1)`. Other contracts'
@@ -54,9 +55,9 @@ edges as hints; hide any edge from the inspector, or a whole kind from the legen
 
 Every keyword links to its chapter of [The Dash Platform Book](https://dashpay.github.io/platform/contract-keywords.html) from the inspector.
 
-- **Document type chips** under each header: `ttl 30d`, `no edits`, `no delete`, `mods delete ≤1w`, `owner creates`, `transferable`, `for sale`, `history`, `logged` (transfer / purchase / pricing history), `fees` (`actionFees`), `token cost`, `count` / `Σ x` / `id ranges`, `sig critical`, `enc keys` / `dec keys`. An **index-only** type has a dashed border and the `«index-only type»` stereotype.
-- **Fields**: required dot, `key` / `ix` markers, a coloured `→` for a declared reference, and chips for `fixed` (`immutable`), `set once` (`immutableAllowSetting`), `transient`, `v2+` (`requiredSince`), `enc` (`encryptedFor`), `≠ $ownerId` (`distinctFrom`) and `payload` (`entryPayload`). Nested objects are indented under their parent; typed arrays show as `string[]`, `identifier[]`; a `$ref` shows its `schemaDefs` name.
-- **Indexes**: fields in order plus chips for `contested`, `count`, `Σ x`, `range`, `top-K count/sum/avg` (ranked), `window 1d/1h` (`timeRange`), `→ $ownerId` (`terminal`), `prealloc`, `skip absent`, `no nulls`.
+- **Document type chips** under each header: `ttl 30d`, `no edits`, `no delete`, `mods delete ≤1w` (`moderatorAbilities.delete`), `mods write` (`moderatorAbilities.changeFields`), `owner creates`, `transferable`, `for sale`, `history`, `logged` (transfer / purchase / pricing history), `fees` (`actionFees`), `token cost`, `count` / `Σ x` / `id ranges`, `sig critical`, `enc keys` / `dec keys`. An **index-only** type has a dashed border and the `«index-only type»` stereotype.
+- **Fields**: required dot, `key` / `ix` markers, a coloured `→` for a declared reference, and chips for `fixed` (`immutable`), `fixed when` (an `immutable` entry with a condition), `generated` (`generatedFrom`), `mods only` (`moderatorAbilities.changeFields`), `transient`, `v2+` (`requiredSince`), `enc` (`encryptedFor`), `≠ $ownerId` (`distinctFrom`) and `payload` (`entryPayload`). Nested objects are indented under their parent; typed arrays show as `string[]`, `identifier[]`; a `$ref` shows its `schemaDefs` name.
+- **Indexes**: fields in order plus chips for `contested`, `count`, `Σ x`, `range`, `top-K count/sum/avg` (ranked), `window 1d/1h` (`timeRange`), `bands 100/100` (`integerRange`), `→ $ownerId` (`terminal`), `prealloc`, `skip absent`, `outlives delete`, `via ref` (a value read from a referenced document), `no nulls`.
 - **Property constraints** get their own compartment, rendered as formulas: `rewardSplit.leader + rewardSplit.equal + rewardSplit.actions = 100`.
 - **Contract metadata** (top-left): id, owner, version, timestamps, keywords, description, config, **moderation** (lists, who moderates, election windows, moderated types), `schemaDefs`, and every type's chips.
 
@@ -81,8 +82,7 @@ trees down to the `[0]` where the index ends. Each layer shows:
 
 The layout is computed by Drive's own rules (`documentTypeLayout` in `@dashevo/evo-sdk`,
 [dashpay/platform#5153](https://github.com/dashpay/platform/pull/5153)), held to what Drive
-writes by a Drive test, and needs no network. It needs an SDK release that includes it; until
-the dependency is bumped the panel says so.
+writes by a Drive test, and needs no network.
 
 ## What a document costs
 
@@ -154,14 +154,15 @@ meta-schema or the parser checks gated behind that feature:
 | Key | What it shows |
 |---|---|
 | `marketplace` | An illustrative contract, not registered anywhere, that uses the protocol 14 keywords together |
-| `moderation-charters` | The system contract behind elected moderation: lookups, list elements, property agreements, an `anyOf` `ownerRefersTo`, encrypted join requests |
+| `moderation-charters` | The system contract behind elected moderation: `findBy` through unique indexes, `inList`, `where`, an `anyOf` `ownerRefersTo`, encrypted join requests |
 | `yappr-likes` | Index-only types from the Drive test suite: terminals, preallocated trees, ranked and time-range indexes |
 | `dpns`, `dashpay`, `app-connect`, `keyword-search`, `withdrawals` | System contracts, as in the platform repo |
 | `dash-qa` | A contract with no declared references, so every edge is inferred |
 
-`npm run validate:examples` validates them and checks `src/model/fixtures/sdk-references.json`,
-the SDK's own reading of their references, which the unit tests compare the diagram's
-parser against (`-- --write` regenerates it after an SDK bump or a new example).
+`npm run validate:examples` validates them and checks the fixtures in `src/model/fixtures/`
+that the unit tests read: the SDK's own reading of their references, which the diagram's
+parser is compared against, and the GroveDB layout and create cost Drive computes for three
+document types. `-- --write` regenerates them after an SDK bump or a change to an example.
 
 ## Interaction, export, deep links
 
@@ -176,10 +177,12 @@ The Vite dev server reads `?url` as its own asset-import query; a small dev-only
 
 ## SDK version
 
-`@dashevo/evo-sdk` is pinned to **4.2.0-beta.4**. It reads contracts from networks on
-protocol version 14 (4.2 devnets) as well as testnet and mainnet. Earlier 4.x SDKs cannot
-decode the version 2 contract config that 4.2 networks serialize. `4.2.0-beta.5` on npm
-depends on a `@dashevo/wasm-sdk` that was never published, so it does not install.
+`@dashevo/evo-sdk` is pinned to **5.0.0-beta.1**, the first release with Drive's
+`documentTypeLayout` and `documentCreateCost`. It reads contracts from testnet and mainnet,
+and from devnets on protocol version 14. Its parser refuses the spellings that 5.0 replaced
+(`lookup`, `propertyAgreement` and `type: "listElement"` in a `refersTo`, and
+`immutableAllowSetting`). So a contract registered with them on a 4.2 devnet no longer loads
+until that devnet is re-cut.
 
 ## Scripts
 
