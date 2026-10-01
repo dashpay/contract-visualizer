@@ -20,7 +20,7 @@ describe('formatDuration', () => {
 
 describe('documentTypeChips', () => {
   it('names the protocol 14 lifecycle, access and money keywords', () => {
-    expect(texts(documentTypeChips(entity('listing')))).toEqual(['ttl 30d', 'mods delete ≤1w', 'fees', 'count']);
+    expect(texts(documentTypeChips(entity('listing')))).toEqual(['ttl 30d', 'mods delete ≤1w', 'mods write', 'fees', 'count']);
     expect(texts(documentTypeChips(entity('giftCard')))).toEqual(['no edits', 'transferable', 'for sale', 'logged']);
   });
 
@@ -42,12 +42,27 @@ describe('indexChips', () => {
     const beat = entity('beat', likes).indices.find((i) => i.name === 'byHourHashtag')!;
     expect(texts(indexChips(beat))).toContain('window 1h/15m');
   });
+
+  it('describes integer-range bands, skip sets, entries that outlive a delete and values read through a reference', () => {
+    const bands = entity('listing').indices.find((i) => i.name === 'byPriceBand')!;
+    expect(texts(indexChips(bands))).toEqual(['count', 'bands 100B/100B']);
+    const index = (options: Record<string, unknown>, derived?: string[]) => ({ name: 'i', fields: [], unique: false, options, written: {}, derived });
+    expect(indexChips(index({ skipIfAbsent: ['hashtag'] }))[0].detail).toBe('A document that leaves out hashtag writes no entry.');
+    expect(texts(indexChips(index({ outlivesDelete: true })))).toEqual(['outlives delete']);
+    expect(texts(indexChips(index({}, ['postId.$ownerId'])))).toEqual(['via ref']);
+  });
 });
 
 describe('fieldChips', () => {
   it('marks per-property keywords', () => {
     const sku = entity('listing').fields.find((f) => f.path === 'sku')!;
-    expect(texts(fieldChips(sku))).toEqual(['set once']);
+    expect(texts(fieldChips(sku))).toEqual(['fixed when']);
+    const shopId = entity('listing').fields.find((f) => f.path === 'shopId')!;
+    expect(texts(fieldChips(shopId))).toEqual(['fixed']);
+    const flag = entity('listing').fields.find((f) => f.path === 'flag')!;
+    expect(texts(fieldChips(flag))).toEqual(['mods only']);
+    const handleKey = entity('shop').fields.find((f) => f.path === 'handleKey')!;
+    expect(texts(fieldChips(handleKey))).toEqual(['generated']);
     const note = entity('offer').fields.find((f) => f.path === 'note')!;
     expect(texts(fieldChips(note))).toEqual(['enc']);
     const photo = entity('listing').fields.find((f) => f.path === 'photoHash')!;

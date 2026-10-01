@@ -13,6 +13,7 @@
       "rankedAxes": [],
       "indexes": [
         "byCategoryPrice",
+        "byPriceBand",
         "byShop",
         "newListings"
       ],
@@ -78,7 +79,7 @@
               "notes": [
                 {
                   "code": "timeRangeOverlap",
-                  "text": "a document lands in every window containing its time: up to 24"
+                  "text": "a document written here lands in every window containing its time: up to 24"
                 }
               ],
               "children": [
@@ -185,6 +186,109 @@
                           "rankedAxes": [],
                           "indexes": [
                             "byCategoryPrice"
+                          ],
+                          "notes": [],
+                          "children": [
+                            {
+                              "key": {
+                                "kind": "documentId"
+                              },
+                              "role": "member",
+                              "structureNode": "contracts.contract.documents.document_type.index_property.value.members.member",
+                              "element": "Reference",
+                              "rankedAxes": [],
+                              "indexes": [],
+                              "notes": [],
+                              "children": []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": {
+            "kind": "fixed",
+            "hex": "70726963652331303030303030303030303023313030303030303030303030",
+            "label": "price#100000000000#100000000000"
+          },
+          "role": "indexProperty",
+          "structureNode": "contracts.contract.documents.document_type.index_property",
+          "element": "Tree",
+          "rankedAxes": [],
+          "indexes": [
+            "byPriceBand"
+          ],
+          "notes": [],
+          "children": [
+            {
+              "key": {
+                "kind": "integerRangeBucket",
+                "property": "price",
+                "range": 100000000000,
+                "step": 100000000000,
+                "phase": 0
+              },
+              "role": "indexValue",
+              "structureNode": "contracts.contract.documents.document_type.index_property.value",
+              "element": "Tree",
+              "rankedAxes": [],
+              "indexes": [
+                "byPriceBand"
+              ],
+              "notes": [
+                {
+                  "code": "integerRangeOverlap",
+                  "text": "a document lands in every window containing its value: up to 1"
+                }
+              ],
+              "children": [
+                {
+                  "key": {
+                    "kind": "fixed",
+                    "hex": "63617465676f7279",
+                    "label": "category"
+                  },
+                  "role": "nextIndexProperty",
+                  "structureNode": "contracts.contract.documents.document_type.index_property.value.next_property",
+                  "element": "Tree",
+                  "rankedAxes": [],
+                  "indexes": [
+                    "byPriceBand"
+                  ],
+                  "notes": [],
+                  "children": [
+                    {
+                      "key": {
+                        "kind": "propertyValue",
+                        "property": "category"
+                      },
+                      "role": "indexValue",
+                      "structureNode": "contracts.contract.documents.document_type.index_property.value",
+                      "element": "CountTree",
+                      "rankedAxes": [],
+                      "indexes": [
+                        "byPriceBand"
+                      ],
+                      "notes": [],
+                      "children": [
+                        {
+                          "key": {
+                            "kind": "fixed",
+                            "hex": "00",
+                            "label": "Members"
+                          },
+                          "role": "terminal",
+                          "structureNode": "contracts.contract.documents.document_type.index_property.value.members",
+                          "element": "CountTree",
+                          "rankedAxes": [],
+                          "indexes": [
+                            "byPriceBand"
                           ],
                           "notes": [],
                           "children": [

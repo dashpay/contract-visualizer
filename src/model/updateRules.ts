@@ -9,6 +9,7 @@
 // 'check', not a 'refused'.
 
 import { BOOK } from './describe';
+import { immutableEntries } from './introspect';
 
 export interface Refusal {
   severity: 'refused' | 'check';
@@ -165,8 +166,7 @@ const FIXED_WITH_PRESENCE: Record<string, string> = {
 
 /** Keys any change of which is refused as a document type update (40212). */
 const FIXED_TYPE: Record<string, string> = {
-  canBeDeletedByModerators: kw('deletion', 'canbedeletedbymoderators'),
-  canBeDeletedByModeratorsFor: kw('deletion', 'canbedeletedbymoderatorsfor'),
+  moderatorAbilities: kw('moderator-abilities'),
   ttl: kw('ttl'),
   keepsTransferHistory: kw('history', 'keepstransferhistory'),
   keepsPurchaseHistory: kw('history', 'keepspurchasehistory'),
@@ -225,15 +225,20 @@ export function typeKeyRefusal(key: string, before: unknown, after: unknown, ctx
     case 'transient':
       return sameSet(before, after) ? undefined : refuse(E.schema, 'transient is fixed (compared as a set).', kw('transient'));
     case 'immutable': {
-      const lost = [...asSet(before)].filter((x) => !asSet(after).has(x));
-      return lost.length ? refuse(E.typeUpdate, `immutable may gain entries, never lose one (lost ${lost.join(', ')}).`, kw('mutability', 'immutable')) : undefined;
-    }
-    case 'immutableAllowSetting': {
-      const was = asSet(ctx.base.immutable);
-      const gained = [...asSet(after)].filter((x) => !asSet(before).has(x) && was.has(x));
-      return gained.length
-        ? refuse(E.typeUpdate, `immutableAllowSetting may gain only a property that becomes immutable in the same update (${gained.join(', ')} already was).`, kw('mutability', 'immutableallowsetting'))
-        : undefined;
+      // May only tighten: entries may be added, a condition may be dropped
+      // (freezing the property outright), nothing else.
+      const b = immutableEntries(before);
+      const a = immutableEntries(after);
+      const href = kw('mutability', 'on-update');
+      const lost = [...b.names].filter((p) => !a.names.has(p));
+      if (lost.length) return refuse(E.typeUpdate, `immutable may gain entries, never lose one (lost ${lost.join(', ')}).`, href);
+      for (const p of b.names) {
+        if (!b.when.has(p) && a.when.has(p)) return refuse(E.typeUpdate, `${p} is frozen outright; it may not gain a condition.`, href);
+        if (b.when.has(p) && a.when.has(p) && !sameJson(b.when.get(p), a.when.get(p))) {
+          return refuse(E.typeUpdate, `The condition freezing ${p} may be dropped, never changed.`, href);
+        }
+      }
+      return undefined;
     }
     case 'dependentRequired':
       return dependentRequiredRefusal(before, after, kw('document-shape', 'dependentrequired'));

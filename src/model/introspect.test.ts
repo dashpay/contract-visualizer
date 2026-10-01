@@ -77,9 +77,12 @@ describe('modelFromPastedJson — protocol 14 property keywords', () => {
     expect(price.constraints).toMatchObject({ minimum: 1, maximum: 1000000000000 });
   });
 
-  it('marks immutable, set-once, transient, requiredSince, encryptedFor, distinctFrom and maxBytes', () => {
-    expect(field(m, 'listing', 'shopId').immutable).toBe(true);
-    expect(field(m, 'listing', 'sku')).toMatchObject({ immutable: true, allowSettingOnce: true });
+  it('marks immutable (with its condition), generatedFrom, moderator-only, transient, requiredSince, encryptedFor, distinctFrom and maxBytes', () => {
+    expect(field(m, 'listing', 'shopId')).toMatchObject({ immutable: true, immutableWhen: undefined });
+    expect(field(m, 'listing', 'sku')).toMatchObject({ immutable: true, immutableWhen: { present: '$old.sku' } });
+    expect(field(m, 'listing', 'title').immutableWhen).toEqual({ greaterThan: [{ subtract: ['$updatedAt', '$createdAt'] }, 300000] });
+    expect(field(m, 'listing', 'flag').moderatorOnly).toBe(true);
+    expect(field(m, 'shop', 'handleKey').generatedFrom).toEqual({ function: 'sys.stringTransformations.homographSafeASCII', params: ['handle'] });
     expect(field(m, 'offer', 'acceptTerms').transient).toBe(true);
     expect(field(m, 'listing', 'photoHash').requiredSince).toBe(2);
     expect(field(m, 'offer', 'note').encryptedFor).toEqual({
@@ -105,7 +108,8 @@ describe('modelFromPastedJson — protocol 14 property keywords', () => {
 
   it('keeps every document type keyword and index keyword', () => {
     const listing = entity(m, 'listing');
-    expect(listing.config).toMatchObject({ ttl: 2592000, canBeDeletedByModeratorsFor: 604800, documentsCountable: true });
+    expect(listing.config).toMatchObject({ ttl: 2592000, moderatorAbilities: { delete: true, deleteWithin: 604800 }, documentsCountable: true });
+    expect(listing.config).not.toHaveProperty('immutable');
     expect(listing.config.actionFees).toEqual({ create: { owner: 100000, moderators: 50000 } });
     expect(listing.propertyConstraints).toHaveProperty('saleBelowPrice');
     expect(listing.indices.find((i) => i.name === 'newListings')!.options.timeRange).toEqual({

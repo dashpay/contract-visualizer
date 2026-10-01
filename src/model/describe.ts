@@ -2,6 +2,7 @@
 // canvas and a sentence plus a book link for the inspector. Pure functions of
 // the model, so the canvas, inspector and metadata panel say the same thing.
 
+import { renderCondition } from './constraints';
 import type { Entity, Field, Index, RefTarget } from './types';
 
 export const BOOK = 'https://dashpay.github.io/platform/';
@@ -36,6 +37,10 @@ export function formatDuration(seconds: number): string {
   if (seconds >= 86400) return `${Math.round((seconds / 86400) * 10) / 10}d`;
   return `${seconds}s`;
 }
+
+/** 100000000000 -> "100B": short enough for a chip. */
+export const compactNumber = (n: unknown): string =>
+  typeof n === 'number' ? new Intl.NumberFormat('en-US', { notation: 'compact' }).format(n) : String(n);
 
 /** Credits with a DASH equivalent (1 DASH = 10^11 credits). */
 export function formatCredits(credits: number): string {
@@ -93,16 +98,31 @@ export function documentTypeChips(entity: Entity): Chip[] {
   if (c.canBeDeleted === false) {
     out.push({ text: 'no delete', detail: 'canBeDeleted: false. The owner cannot delete a document.', tone: 'lifecycle', href: kw('deletion', 'canbedeleted') });
   }
-  if (c.canBeDeletedByModerators === true) {
-    const window = typeof c.canBeDeletedByModeratorsFor === 'number' ? c.canBeDeletedByModeratorsFor : undefined;
+  const mod = isObj(c.moderatorAbilities) ? c.moderatorAbilities : undefined;
+  if (mod?.delete === true) {
+    const window = typeof mod.deleteWithin === 'number' ? mod.deleteWithin : undefined;
+    const kept = Array.isArray(mod.deleteKeepsFields) ? mod.deleteKeepsFields.filter((f): f is string => typeof f === 'string') : [];
+    const bits = [
+      mod.deleteKeepsRecord === false
+        ? 'the deletion is final and leaves no record'
+        : `it leaves a removal record${kept.length ? ` keeping ${kept.join(', ')}` : ''} that a restore brings it back from`,
+      mod.deleteRefundsOwner === true ? 'the owner is refunded its storage' : 'the owner forfeits its storage',
+    ];
+    if (isObj(mod.deleteSettled)) {
+      const approvals = typeof mod.deleteSettled.approvals === 'number' ? mod.deleteSettled.approvals : 1;
+      const leader = mod.deleteSettled.leader === true ? ', the leader among them' : '';
+      bits.push(`once settled, ${approvals} member${approvals === 1 ? '' : 's'} of the seated team delete it together${leader}`);
+    }
     out.push({
       text: window ? `mods delete ≤${formatDuration(window)}` : 'mods delete',
-      detail: window
-        ? `The contract's moderators may delete a document up to ${formatDuration(window)} after its last change.`
-        : "The contract's moderators may delete documents of this type.",
+      detail: `The contract's moderators may delete any document${window ? ` up to ${formatDuration(window)} after its last change` : ''}: ${bits.join('; ')}.`,
       tone: 'access',
-      href: kw('deletion', 'canbedeletedbymoderators'),
+      href: kw('deletion', 'moderatorabilitiesdelete'),
     });
+  }
+  const modFields = Array.isArray(mod?.changeFields) ? mod.changeFields.filter((f): f is string => typeof f === 'string') : [];
+  if (modFields.length) {
+    out.push({ text: 'mods write', detail: `Only the contract's moderators write ${modFields.join(', ')}.`, tone: 'access', href: kw('moderator-abilities', 'changefields') });
   }
   if (c.creationRestrictionMode === 1) {
     out.push({ text: 'owner creates', detail: 'creationRestrictionMode 1: only the contract owner may create documents.', tone: 'access', href: kw('ownership-and-trading', 'creationrestrictionmode') });
@@ -206,8 +226,21 @@ export function indexChips(index: Index): Chip[] {
   if (o.preallocated === true) {
     out.push({ text: 'prealloc', detail: "The index's trees are created with the referenced document.", tone: 'storage', href: kw('index-only', 'preallocated') });
   }
-  if (o.skipIfAbsent === true) {
-    out.push({ text: 'skip absent', detail: 'A document without the first property writes no entry.', tone: 'storage', href: kw('index-only', 'skipifabsent') });
+  if (o.skipIfAbsent === true || Array.isArray(o.skipIfAbsent)) {
+    const which = Array.isArray(o.skipIfAbsent) ? `leaves out ${o.skipIfAbsent.join(', ')}` : 'leaves out an optional property of the index';
+    out.push({ text: 'skip absent', detail: `A document that ${which} writes no entry.`, tone: 'storage', href: kw('indexes', 'skipifabsent') });
+  }
+  if (isObj(o.integerRange)) {
+    const r = o.integerRange;
+    const phase = typeof r.phase === 'number' && r.phase !== 0 ? `, cut at ${r.phase} past each step` : '';
+    const n = (v: unknown) => (typeof v === 'number' ? v.toLocaleString('en-US') : String(v));
+    out.push({ text: `bands ${compactNumber(r.range)}/${compactNumber(r.step)}`, detail: `Buckets ${String(r.on)} into windows ${n(r.range)} wide starting every ${n(r.step)}${phase}.`, tone: 'aggregate', href: kw('integer-range') });
+  }
+  if (o.outlivesDelete === true) {
+    out.push({ text: 'outlives delete', detail: "A delete leaves the index's entries in place; they expire with their window.", tone: 'storage', href: kw('index-only', 'outlivesdelete') });
+  }
+  if (index.derived?.length) {
+    out.push({ text: 'via ref', detail: `Holds ${index.derived.join(', ')}, read from the document the reference points at; the document does not store it.`, tone: 'reference', href: kw('derived-index-properties') });
   }
   return out;
 }
@@ -217,10 +250,17 @@ export function fieldChips(field: Field): Chip[] {
   const out: Chip[] = [];
   if (field.immutable) {
     out.push(
-      field.allowSettingOnce
-        ? { text: 'set once', detail: 'Immutable, but a replace may set it once while it has no value.', tone: 'lifecycle', href: kw('mutability', 'immutableallowsetting') }
+      field.immutableWhen !== undefined
+        ? { text: 'fixed when', detail: `Frozen for any replace this condition holds for: ${renderCondition(field.immutableWhen)}.`, tone: 'lifecycle', href: kw('mutability', 'immutable') }
         : { text: 'fixed', detail: 'Immutable: frozen at creation on a mutable type.', tone: 'lifecycle', href: kw('mutability', 'immutable') },
     );
+  }
+  if (field.generatedFrom) {
+    const g = field.generatedFrom;
+    out.push({ text: 'generated', detail: `The platform generates it as ${g.function}(${g.params.join(', ')}); a client may leave it out.`, tone: 'neutral', href: kw('generated-from') });
+  }
+  if (field.moderatorOnly) {
+    out.push({ text: 'mods only', detail: "Only the contract's moderators write it (moderatorAbilities.changeFields).", tone: 'access', href: kw('moderator-abilities', 'changefields') });
   }
   if (field.transient) {
     out.push({ text: 'transient', detail: 'Validated on the transition but never stored.', tone: 'storage', href: kw('transient') });
@@ -268,8 +308,11 @@ export const REF_KIND_LABEL: Record<RefKind, string> = {
 
 /** The book chapter for a reference target. */
 export function refHref(t: RefTarget): string {
-  if (t.lookup) return kw('refers-to-lookup');
-  if (t.type === 'listElement') return kw('refers-to-list-element');
+  if (t.inList) return kw('refers-to-list-element');
+  if (t.findBy) {
+    const fn = Object.values(t.findBy).some((v) => typeof v !== 'string');
+    return kw('refers-to-lookup', fn ? 'commit-and-reveal' : undefined);
+  }
   return kw('refers-to', t.type.toLowerCase());
 }
 

@@ -28,6 +28,7 @@ describe('keyText', () => {
   it('reads families of keys in angle quotes', () => {
     expect(keyText({ kind: 'documentId' })).toBe('‹document id›');
     expect(keyText({ kind: 'propertyValue', property: 'shopId' })).toBe('‹shopId value›');
+    expect(keyText({ kind: 'integerRangeBucket', property: 'price', range: 300, step: 100, phase: 0 })).toBe('‹price band: 300 every 100›');
     const window = find(listing.root, (n) => n.key.kind === 'timeRangeBucket');
     expect(keyText(window.key)).toBe('‹$createdAt window: 1d every 1h›');
     const members: string[] = [];
@@ -52,7 +53,7 @@ describe('kindFamily', () => {
 
 describe('the fixtures', () => {
   it('summarise what each layout counts, sums and ranks', () => {
-    expect(layoutSummary(listing)).toEqual({ layers: 19, aggregates: 5, ranked: 0, wrapped: 0 });
+    expect(layoutSummary(listing)).toEqual({ layers: 25, aggregates: 7, ranked: 0, wrapped: 0 });
     expect(layoutSummary(tip).ranked).toBe(1);
   });
 
