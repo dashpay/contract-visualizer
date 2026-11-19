@@ -78,7 +78,7 @@ export interface ModerationOverview {
   lists: string[];
   /** Elected only: label/value rows of the election terms. */
   election: Array<{ label: string; value: string }>;
-  /** Elected only: who moderates until a team is seated. */
+  /** Elected only: who moderates until a team is seated (a clause, without that condition). */
   interim?: string;
   types: TypeModeration[];
 }
@@ -87,13 +87,13 @@ function interimText(interim: unknown): string | undefined {
   if (!isObj(interim) || typeof interim.$type !== 'string') return undefined;
   switch (interim.$type) {
     case 'contractOwner':
-      return 'the contract owner moderates until a team is seated';
+      return 'the contract owner moderates';
     case 'appointedModerators':
-      return `the owner and ${strings(interim.identities).length} appointed identities moderate until a team is seated`;
+      return `the owner and ${strings(interim.identities).length} appointed identities moderate`;
     case 'notYetUsable':
-      return 'nobody moderates, and the moderated types refuse every write, until a team is seated';
+      return 'nobody moderates, and the moderated types refuse every write';
     case 'noModeration':
-      return 'nobody moderates, and every type works unmoderated, until a team is seated';
+      return 'nobody moderates, and every type works unmoderated';
     default:
       return interim.$type;
   }

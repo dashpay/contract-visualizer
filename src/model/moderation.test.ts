@@ -73,7 +73,7 @@ const type = (name: string) => overview.types.find((t) => t.type === name)!;
 describe('moderationOverview', () => {
   it('should name an elected team, its interim and the contract-wide lists', () => {
     expect(overview.kind).toBe('elected');
-    expect(overview.interim).toBe('the contract owner moderates until a team is seated');
+    expect(overview.interim).toBe('the contract owner moderates');
     expect(overview.lists).toEqual(['banlist', 'suspensions', 'warnings']);
     expect(overview.election).toContainEqual({ label: 'leader may add', value: '10 members' });
   });

@@ -36,7 +36,7 @@ export function ModerationPanel({ model, onFocus }: { model: ContractModel; onFo
             <a href={MODERATION_HREF.config} target="_blank" rel="noreferrer">
               {overview.who}
             </a>
-            {overview.interim ? ` Until then, ${overview.interim}.` : ''}
+            {overview.interim ? ` Until a team is seated, ${overview.interim}.` : ''}
           </p>
           <div className="cv-meta-row">
             <span className="cv-meta-label">contract-wide</span>
