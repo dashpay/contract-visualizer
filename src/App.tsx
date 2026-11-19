@@ -14,6 +14,8 @@ import { Toolbar } from './components/Toolbar';
 import { InspectorPanel } from './components/InspectorPanel';
 import { PasteContractModal } from './components/PasteContractModal';
 import { ContractMetaPanel } from './components/ContractMetaPanel';
+import { ModerationPanel } from './components/ModerationPanel';
+import { moderationOverview } from './model/moderation';
 import { ChangesPanel } from './components/ChangesPanel';
 import { CostPanel } from './components/CostPanel';
 import { LayoutPanel } from './components/LayoutPanel';
@@ -401,6 +403,7 @@ export default function App() {
       declared: rels.filter((r) => r.kind === 'declared').length,
       inferred: rels.filter((r) => r.kind === 'inferred').length,
       platform: rels.filter((r) => r.to.startsWith('platform:')).length,
+      records: model ? (moderationOverview(model)?.types.filter((t) => t.keepsRecord).length ?? 0) : 0,
     };
   }, [model]);
 
@@ -478,7 +481,12 @@ export default function App() {
               focus={focus}
             />
           )}
-          {model && status !== 'error' && !diff && <ContractMetaPanel model={model} />}
+          {model && status !== 'error' && !diff && (
+            <div className="cv-leftpanels">
+              <ContractMetaPanel model={model} />
+              <ModerationPanel model={model} onFocus={(id) => setFocus((f) => ({ id, n: (f?.n ?? 0) + 1 }))} />
+            </div>
+          )}
           {model && status !== 'error' && diff && compareSpec && (
             <ChangesPanel
               diff={diff}

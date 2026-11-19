@@ -16,7 +16,8 @@ describe('toEdges / toNodes', () => {
     for (const e of edges) {
       const node = nodes.find((n) => n.id === e.source)!;
       const data = node.data as EntityNodeData;
-      expect(data.sources).toContain(e.sourceHandle!.slice('out:'.length));
+      if (e.target.startsWith('record:')) expect(data.recordShown).toBe(true);
+      else expect(data.sources).toContain(e.sourceHandle!.slice('out:'.length));
     }
   });
 

@@ -6,9 +6,15 @@ import type { ViewKind } from '../config';
 import { documentTypeChips, refKind, type RefKind } from '../model/describe';
 import type { ContractModel, Entity, ExternalNode, Relationship } from '../model/types';
 import type { ChangeKind, ContractDiff } from '../model/diff';
+import { moderatedReferrers, moderationBandLines, moderationOverview, removalRecordFields, type RecordField, type TypeModeration } from '../model/moderation';
 
 export const NODE_WIDTH = 300;
 export const EXTERNAL_WIDTH = 190;
+export const RECORD_WIDTH = 270;
+/** Node id of a type's removal record. */
+export const recordNodeId = (type: string) => `record:${type}`;
+/** Source handle on a moderated type that the edge to its removal record leaves from. */
+export const RECORD_HANDLE = 'out:$removal';
 const HEADER_H = 38;
 const CHIP_ROW_H = 22;
 const ROW_H = 21;
@@ -23,9 +29,11 @@ export interface Filters {
   platform: boolean;
   /** Compare mode: only document types with a change (and what their edges reach). */
   onlyChanged: boolean;
+  /** The removal record nodes of types whose moderators' deletions keep one. */
+  records: boolean;
 }
 
-export const DEFAULT_FILTERS: Filters = { declared: true, inferred: true, platform: true, onlyChanged: false };
+export const DEFAULT_FILTERS: Filters = { declared: true, inferred: true, platform: true, onlyChanged: false, records: true };
 
 /** Compare mode: the status of one document type and its parts. */
 export interface EntityDiff {
@@ -62,11 +70,13 @@ export function entityDiff(diff: ContractDiff, name: string): EntityDiff {
 }
 
 /** Estimate a node's rendered height so elk can lay it out before paint (re-laid out once measured). */
-export function estimateNodeHeight(entity: Entity): number {
+export function estimateNodeHeight(entity: Entity, moderation?: TypeModeration): number {
   const chips = documentTypeChips(entity).length;
   const constraints = Object.keys(entity.propertyConstraints).length;
+  const band = moderation ? SECTION_HEAD_H + moderationBandLines(moderation).length * ROW_H + (moderation.team?.length ? ROW_H : 0) : 0;
   return (
     HEADER_H +
+    band +
     (chips ? Math.ceil(chips / 3) * CHIP_ROW_H : 0) +
     entity.fields.length * ROW_H +
     (entity.indices.length ? SECTION_HEAD_H + entity.indices.length * INDEX_ROW_H * 1.4 : 0) +
@@ -86,6 +96,18 @@ export interface EntityNodeData extends Record<string, unknown> {
   refKinds: Record<string, RefKind>;
   /** Compare mode only. */
   diff?: EntityDiff;
+  /** What the contract's moderators may do to this type, when anything. */
+  moderation?: TypeModeration;
+  /** The edge to the type's removal record is drawn. */
+  recordShown?: boolean;
+}
+
+export interface RecordNodeData extends Record<string, unknown> {
+  entity: Entity;
+  moderation: TypeModeration;
+  fields: RecordField[];
+  /** `<type>.<field>` references that resolve to this record once the document is removed. */
+  referrers: string[];
 }
 
 export interface ExternalNodeData extends Record<string, unknown> {
@@ -94,7 +116,7 @@ export interface ExternalNodeData extends Record<string, unknown> {
   status?: ChangeKind;
 }
 
-export type DiagramNode = Node<EntityNodeData> | Node<ExternalNodeData>;
+export type DiagramNode = Node<EntityNodeData> | Node<ExternalNodeData> | Node<RecordNodeData>;
 
 const localEntity = (model: ContractModel, id: string) => model.entities.some((e) => e.name === id);
 
@@ -183,7 +205,42 @@ const STATUS_STROKE: Record<ChangeKind, string> = {
   changed: 'var(--diff-changed)',
 };
 
+/** Types whose removal record is drawn: they keep records, are shown, and records are on. */
+export function recordTypes(model: ContractModel, filters: Filters, diff?: ContractDiff): TypeModeration[] {
+  if (!filters.records) return [];
+  const shown = shownEntities(model, filters, diff);
+  return (moderationOverview(model)?.types ?? []).filter((t) => t.keepsRecord && shown.has(t.type));
+}
+
+/** The dashed edge from a moderated type to the removal record its moderators' deletions write. */
+function recordEdges(model: ContractModel, filters: Filters, diff?: ContractDiff): Edge[] {
+  return recordTypes(model, filters, diff).map((t) => ({
+    id: `removal:${t.type}`,
+    source: t.type,
+    target: recordNodeId(t.type),
+    sourceHandle: RECORD_HANDLE,
+    targetHandle: 'in',
+    type: 'smoothstep',
+    label: 'on moderator delete',
+    labelShowBg: true,
+    labelStyle: { fill: 'var(--moderation)' },
+    markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16, color: 'var(--moderation)' },
+    style: { stroke: 'var(--moderation)', strokeWidth: 1.6, strokeDasharray: '3 4' },
+    data: { removal: t.type },
+  }));
+}
+
 export function toEdges(
+  model: ContractModel,
+  view: ViewKind,
+  hidden: Set<string>,
+  filters: Filters,
+  diff?: ContractDiff,
+): Edge[] {
+  return [...relationshipEdges(model, view, hidden, filters, diff), ...recordEdges(model, filters, diff)];
+}
+
+function relationshipEdges(
   model: ContractModel,
   view: ViewKind,
   hidden: Set<string>,
@@ -228,7 +285,8 @@ export function toNodes(model: ContractModel, view: ViewKind, edges: Edge[], dif
   const targets = new Map<string, Set<string>>();
   const incoming = new Map<string, number>();
   for (const e of edges) {
-    const rel = (e.data as { relationship: Relationship }).relationship;
+    const rel = (e.data as { relationship?: Relationship }).relationship;
+    if (!rel) continue;
     if (!sources.has(e.source)) sources.set(e.source, new Set());
     sources.get(e.source)!.add(rel.fromField);
     const th = e.targetHandle?.startsWith('in:') ? e.targetHandle.slice(3) : undefined;
@@ -239,6 +297,10 @@ export function toNodes(model: ContractModel, view: ViewKind, edges: Edge[], dif
     incoming.set(e.target, (incoming.get(e.target) ?? 0) + 1);
   }
 
+  const overview = moderationOverview(model);
+  const modByType = new Map((overview?.types ?? []).map((t) => [t.type, t]));
+  const records = recordTypes(model, filters, diff);
+  const recordShown = new Set(records.map((t) => t.type));
   const entityNodes: Node<EntityNodeData>[] = model.entities.filter((e) => shown.has(e.name)).map((entity) => {
     const refKinds: Record<string, RefKind> = {};
     for (const rel of model.relationships) {
@@ -258,9 +320,24 @@ export function toNodes(model: ContractModel, view: ViewKind, edges: Edge[], dif
         targets: [...(targets.get(entity.name) ?? [])],
         refKinds,
         diff: diff ? entityDiff(diff, entity.name) : undefined,
+        moderation: modByType.get(entity.name),
+        recordShown: recordShown.has(entity.name),
       },
       width: NODE_WIDTH,
-      height: estimateNodeHeight(entity),
+      height: estimateNodeHeight(entity, modByType.get(entity.name)),
+    };
+  });
+
+  const recordNodes: Node<RecordNodeData>[] = records.map((t) => {
+    const entity = model.entities.find((e) => e.name === t.type)!;
+    const fields = removalRecordFields(entity, t);
+    return {
+      id: recordNodeId(t.type),
+      type: 'record',
+      position: { x: 0, y: 0 },
+      data: { entity, moderation: t, fields, referrers: moderatedReferrers(model, t.type) },
+      width: RECORD_WIDTH,
+      height: HEADER_H + 30 + fields.length * ROW_H + (t.keptFields.length ? SECTION_HEAD_H : 0) + PAD,
     };
   });
 
@@ -285,5 +362,5 @@ export function toNodes(model: ContractModel, view: ViewKind, edges: Edge[], dif
       height: node.kind === 'externalDocument' ? 70 : 52,
     }));
 
-  return [...entityNodes, ...externalNodes];
+  return [...entityNodes, ...recordNodes, ...externalNodes];
 }

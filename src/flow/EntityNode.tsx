@@ -1,7 +1,8 @@
 import { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { EntityNodeData } from './diagramToFlow';
-import { kindColor } from './diagramToFlow';
+import { kindColor, RECORD_HANDLE } from './diagramToFlow';
+import { moderationBandLines, TEAM_ABILITY_LABEL, type TypeModeration } from '../model/moderation';
 import { useSelect } from './selection';
 import { documentTypeChips, fieldChips, indexChips, type Chip } from '../model/describe';
 import { renderCondition } from '../model/constraints';
@@ -129,18 +130,53 @@ function IndexRow({ entity, index, data }: { entity: Entity; index: Index; data:
   );
 }
 
+/** The moderators' powers over this type, stated in full under its header. */
+function ModerationBand({ entity, moderation, recordShown }: { entity: Entity; moderation: TypeModeration; recordShown?: boolean }) {
+  const select = useSelect();
+  const lines = moderationBandLines(moderation);
+  return (
+    <button
+      type="button"
+      className="cv-modband"
+      onClick={(e) => {
+        e.stopPropagation();
+        select({ kind: 'entity', entity });
+      }}
+    >
+      <span className="cv-modband-head">
+        <span className="cv-modband-icon" aria-hidden="true">
+          ⛨
+        </span>
+        moderators may
+      </span>
+      {lines.map((l) => (
+        <span key={l.text} className="cv-modband-line" title={l.detail}>
+          {l.text}
+        </span>
+      ))}
+      {moderation.team && moderation.team.length > 0 && (
+        <span className="cv-modband-team" title="What the elected declaration's moderatedDocumentTypes gives the seated team on this type">
+          team: {moderation.team.map((a) => TEAM_ABILITY_LABEL[a]).join(' · ')}
+        </span>
+      )}
+      {recordShown && <Handle type="source" position={Position.Right} id={RECORD_HANDLE} className="cv-handle cv-handle-moderation" />}
+    </button>
+  );
+}
+
 function EntityNodeImpl({ data }: NodeProps) {
   const d = data as EntityNodeData;
   const { entity, view } = d;
   const select = useSelect();
-  const typeChips = documentTypeChips(entity);
+  // The band states the moderators' powers in full; no chips repeating them.
+  const typeChips = documentTypeChips(entity).filter((c) => !d.moderation || c.tone !== 'moderation');
   const constraints = Object.entries(entity.propertyConstraints);
   const indexOnly = entity.config.indexOnly === true;
   const typeStatus = d.diff?.status;
   const typeRefused = !!d.diff?.refused.includes('type');
   return (
     <div
-      className={`cv-entity ${indexOnly ? 'cv-entity-indexonly' : ''} ${typeStatus ? `cv-entity-${typeStatus}` : ''} ${d.diff && !typeStatus ? 'cv-entity-unchanged' : ''}`}
+      className={`cv-entity ${d.moderation ? 'cv-entity-moderated' : ''} ${indexOnly ? 'cv-entity-indexonly' : ''} ${typeStatus ? `cv-entity-${typeStatus}` : ''} ${d.diff && !typeStatus ? 'cv-entity-unchanged' : ''}`}
     >
       <Handle type="target" position={Position.Left} id="in" className="cv-handle" />
       <button
@@ -157,9 +193,12 @@ function EntityNodeImpl({ data }: NodeProps) {
           <RefusedMark show={typeRefused} />
         </span>
         {view !== 'merise' ? (
-          <span className="cv-stereotype">{indexOnly ? '«index-only type»' : '«document type»'}</span>
+          <span className="cv-stereotype">
+            {indexOnly ? '«index-only type»' : d.moderation ? '«moderated document type»' : '«document type»'}
+          </span>
         ) : null}
       </button>
+      {d.moderation && <ModerationBand entity={entity} moderation={d.moderation} recordShown={d.recordShown} />}
       {typeChips.length > 0 && (
         <div className="cv-entity-chips">
           <Chips chips={typeChips} />

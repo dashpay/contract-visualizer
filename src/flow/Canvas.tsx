@@ -15,13 +15,14 @@ import {
 import '@xyflow/react/dist/style.css';
 import { EntityNode } from './EntityNode';
 import { ExternalNode } from './ExternalNode';
+import { RecordNode } from './RecordNode';
 import { kindColor, type DiagramNode, type Filters } from './diagramToFlow';
 import { exportDiagram } from './exportImage';
 import { useSelect } from './selection';
 import { REF_KIND_LABEL, type RefKind } from '../model/describe';
 import type { Relationship } from '../model/types';
 
-const nodeTypes = { entity: EntityNode, external: ExternalNode };
+const nodeTypes = { entity: EntityNode, external: ExternalNode, record: RecordNode };
 
 interface Props {
   nodes: DiagramNode[];
@@ -33,7 +34,7 @@ interface Props {
   exportName: string;
   filters: Filters;
   onFilters: (f: Filters) => void;
-  counts: { declared: number; inferred: number; platform: number };
+  counts: { declared: number; inferred: number; platform: number; records: number };
   /** Compare mode: show the diff legend. */
   compare?: boolean;
   /** Center the view on this node; `n` changes on every request. */
@@ -72,6 +73,12 @@ function Legend({ filters, onFilters, counts, compare }: Pick<Props, 'filters' |
           <span className="cv-legend-swatch cv-legend-dashed" />
           inferred from names
         </span>
+        {counts.records > 0 && (
+          <span className="cv-legend-kind">
+            <span className="cv-legend-swatch cv-legend-moderation" />
+            moderator removal record
+          </span>
+        )}
       </div>
       <div className="cv-legend-filters">
         <label>
@@ -86,6 +93,12 @@ function Legend({ filters, onFilters, counts, compare }: Pick<Props, 'filters' |
           <input type="checkbox" checked={filters.platform} onChange={(e) => onFilters({ ...filters, platform: e.target.checked })} />
           identities, keys, tokens ({counts.platform})
         </label>
+        {counts.records > 0 && (
+          <label>
+            <input type="checkbox" checked={filters.records} onChange={(e) => onFilters({ ...filters, records: e.target.checked })} />
+            removal records ({counts.records})
+          </label>
+        )}
       </div>
     </div>
   );

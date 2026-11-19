@@ -8,7 +8,7 @@ import type { Entity, Field, Index, RefTarget } from './types';
 export const BOOK = 'https://dashpay.github.io/platform/';
 const kw = (page: string, anchor?: string) => `${BOOK}contract-keywords/${page}.html${anchor ? `#${anchor}` : ''}`;
 
-export type Tone = 'lifecycle' | 'access' | 'money' | 'aggregate' | 'storage' | 'reference' | 'neutral';
+export type Tone = 'lifecycle' | 'access' | 'moderation' | 'money' | 'aggregate' | 'storage' | 'reference' | 'neutral';
 
 export interface Chip {
   /** Short text on the canvas. */
@@ -116,13 +116,13 @@ export function documentTypeChips(entity: Entity): Chip[] {
     out.push({
       text: window ? `mods delete ≤${formatDuration(window)}` : 'mods delete',
       detail: `The contract's moderators may delete any document${window ? ` up to ${formatDuration(window)} after its last change` : ''}: ${bits.join('; ')}.`,
-      tone: 'access',
+      tone: 'moderation',
       href: kw('deletion', 'moderatorabilitiesdelete'),
     });
   }
   const modFields = Array.isArray(mod?.changeFields) ? mod.changeFields.filter((f): f is string => typeof f === 'string') : [];
   if (modFields.length) {
-    out.push({ text: 'mods write', detail: `Only the contract's moderators write ${modFields.join(', ')}.`, tone: 'access', href: kw('moderator-abilities', 'changefields') });
+    out.push({ text: 'mods write', detail: `Only the contract's moderators write ${modFields.join(', ')}.`, tone: 'moderation', href: kw('moderator-abilities', 'changefields') });
   }
   if (c.creationRestrictionMode === 1) {
     out.push({ text: 'owner creates', detail: 'creationRestrictionMode 1: only the contract owner may create documents.', tone: 'access', href: kw('ownership-and-trading', 'creationrestrictionmode') });
@@ -260,7 +260,10 @@ export function fieldChips(field: Field): Chip[] {
     out.push({ text: 'generated', detail: `The platform generates it as ${g.function}(${g.params.join(', ')}); a client may leave it out.`, tone: 'neutral', href: kw('generated-from') });
   }
   if (field.moderatorOnly) {
-    out.push({ text: 'mods only', detail: "Only the contract's moderators write it (moderatorAbilities.changeFields).", tone: 'access', href: kw('moderator-abilities', 'changefields') });
+    out.push({ text: 'mods only', detail: "Only the contract's moderators write it (moderatorAbilities.changeFields).", tone: 'moderation', href: kw('moderator-abilities', 'changefields') });
+  }
+  if (field.keptOnRemoval) {
+    out.push({ text: 'kept on removal', detail: "Stays public in the removal record when a moderator deletes the document (moderatorAbilities.deleteKeepsFields).", tone: 'moderation', href: kw('deletion', 'moderatorabilitiesdeletekeepsfields') });
   }
   if (field.transient) {
     out.push({ text: 'transient', detail: 'Validated on the transition but never stored.', tone: 'storage', href: kw('transient') });
