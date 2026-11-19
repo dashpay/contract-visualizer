@@ -27,6 +27,9 @@
   --tone-storage: #4b5563;
   --tone-reference: #1f6feb;
   --tone-neutral: #69707d;
+  --moderation: #be185d;
+  --moderation-bg: rgba(190, 24, 93, 0.07);
+  --moderation-border: rgba(190, 24, 93, 0.45);
   --diff-added: #1a7f37;
   --diff-added-bg: rgba(26, 127, 55, 0.10);
   --diff-removed: #cf222e;
@@ -64,6 +67,9 @@
     --tone-storage: #cbd5e1;
     --tone-reference: #58a6ff;
     --tone-neutral: #98a0ad;
+    --moderation: #f472b6;
+    --moderation-bg: rgba(244, 114, 182, 0.1);
+    --moderation-border: rgba(244, 114, 182, 0.5);
     --diff-added: #3fb950;
     --diff-added-bg: rgba(63, 185, 80, 0.14);
     --diff-removed: #f85149;
@@ -210,6 +216,7 @@ button { font: inherit; cursor: pointer; }
 .cv-tone-storage { color: var(--tone-storage); }
 .cv-tone-reference { color: var(--tone-reference); }
 .cv-tone-neutral { color: var(--tone-neutral); }
+.cv-tone-moderation { color: var(--moderation); font-weight: 600; }
 .cv-entity-chips { padding: 5px 10px; border-bottom: 1px solid var(--border); }
 .cv-chips-index { padding-left: 2px; }
 
@@ -243,6 +250,7 @@ button { font: inherit; cursor: pointer; }
 .cv-legend-kinds, .cv-legend-filters { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: center; }
 .cv-legend-kind { display: inline-flex; align-items: center; gap: 5px; }
 .cv-legend-swatch { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+.cv-legend-moderation { background: repeating-linear-gradient(90deg, var(--moderation) 0 3px, transparent 3px 6px); }
 .cv-legend-dashed { background: repeating-linear-gradient(90deg, var(--cv-edge) 0 4px, transparent 4px 7px); }
 .cv-legend-filters label { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; color: var(--text); }
 
@@ -513,3 +521,68 @@ button { font: inherit; cursor: pointer; }
 .cv-json-string { color: var(--ref-identity); }
 .cv-json-number { color: var(--ref-token); }
 .cv-json-literal { color: var(--ref-contract); }
+
+/* Moderation: a moderated type wears its moderators' powers under its header */
+.cv-entity-moderated { border: 1.5px solid var(--moderation-border); box-shadow: 0 0 0 3px var(--moderation-bg), var(--shadow); }
+.cv-entity-moderated .cv-entity-head { border-bottom-color: var(--moderation-border); }
+.cv-modband {
+  position: relative; display: flex; flex-direction: column; gap: 1px; width: 100%; text-align: left;
+  background: var(--moderation-bg); border: none; border-bottom: 1px solid var(--moderation-border);
+  padding: 5px 10px 6px; color: var(--text); font-size: 11.5px; line-height: 1.35;
+}
+.cv-modband:hover { background: color-mix(in srgb, var(--moderation-bg) 100%, var(--moderation) 6%); }
+.cv-modband-head { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--moderation); font-weight: 700; display: flex; align-items: center; gap: 4px; }
+.cv-modband-icon { color: var(--moderation); font-size: 12px; }
+.cv-modband-line { padding-left: 14px; position: relative; }
+.cv-modband-line::before { content: '▸'; position: absolute; left: 2px; color: var(--moderation); }
+.cv-modband-team { padding-left: 14px; color: var(--moderation); font-weight: 600; }
+.cv-handle-moderation { background: var(--moderation); }
+
+/* The removal (shadow) record a moderator's deletion leaves */
+.cv-record {
+  background: var(--surface); border: 1.5px dashed var(--moderation); border-radius: var(--radius);
+  width: 100%; font-size: 12px; opacity: 0.95;
+  background-image: repeating-linear-gradient(135deg, transparent 0 10px, var(--moderation-bg) 10px 20px);
+}
+.cv-record-head {
+  width: 100%; text-align: left; background: var(--moderation-bg); color: var(--text);
+  border: none; border-bottom: 1px dashed var(--moderation-border); padding: 8px 10px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+}
+.cv-record-name { font-weight: 600; font-size: 12.5px; color: var(--moderation); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.cv-record-note { font-size: 10.5px; color: var(--text-muted); padding: 4px 10px; border-bottom: 1px dashed var(--border); }
+.cv-record-referrers { border-bottom: none; border-top: 1px dashed var(--border); }
+.cv-record-field { background: transparent; }
+.cv-record-field .cv-field-label { font-style: italic; }
+.cv-record-kept .cv-field-label { font-style: normal; color: var(--moderation); font-weight: 600; }
+.cv-record-kept-group { border-top: 1px dashed var(--moderation-border); }
+.cv-record-kept-head { color: var(--moderation); font-weight: 700; }
+
+/* Panels stacked top-left over the canvas */
+.cv-leftpanels {
+  position: absolute; top: 12px; left: 12px; z-index: 6; width: 330px; max-width: calc(100% - 24px);
+  display: flex; flex-direction: column; gap: 8px; max-height: calc(100% - 24px); pointer-events: none;
+}
+.cv-leftpanels > * { pointer-events: auto; }
+.cv-leftpanels .cv-metapanel { position: static; width: 100%; max-width: none; flex-shrink: 0; }
+.cv-leftpanels .cv-modpanel.open { flex-shrink: 1; min-height: 0; display: flex; flex-direction: column; }
+.cv-modpanel { border-color: var(--moderation-border); }
+.cv-modpanel .cv-metapanel-head { background: var(--moderation-bg); color: var(--moderation); font-weight: 600; }
+.cv-modpanel .cv-metapanel-body { max-height: none; overflow-y: auto; min-height: 0; }
+.cv-modpanel .cv-meta-desc a { color: inherit; text-decoration: underline dotted; }
+.cv-modtype { border-top: 1px solid var(--border); margin-top: 8px; padding-top: 6px; }
+.cv-modtype-name { background: none; border: none; padding: 0; color: var(--moderation); font-weight: 600; font-size: 12.5px; cursor: pointer; }
+.cv-modtype-name:hover { text-decoration: underline; }
+.cv-modtype-lines { margin: 3px 0 0; padding-left: 16px; font-size: 12px; line-height: 1.4; }
+.cv-modtype-lines li::marker { color: var(--moderation); }
+.cv-modtype-lines a { color: var(--text); text-decoration: none; }
+.cv-modtype-lines a:hover { text-decoration: underline; }
+.cv-modtype-record {
+  margin-top: 4px; width: 100%; text-align: left; font-size: 11px; color: var(--text-muted);
+  background: none; border: 1px dashed var(--moderation-border); border-radius: 5px; padding: 3px 6px; cursor: pointer;
+}
+.cv-modtype-record:hover { color: var(--moderation); }
+.cv-modpanel-foot { font-size: 11px; margin: 10px 0 0; }
+.cv-modpanel-foot a { color: inherit; }
+.cv-explain-moderation li { margin-bottom: 4px; }

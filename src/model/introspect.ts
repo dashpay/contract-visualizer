@@ -179,7 +179,15 @@ interface Marks {
   entryPayload: Set<string>;
   /** moderatorAbilities.changeFields. */
   moderatorOnly: Set<string>;
+  /** moderatorAbilities.deleteKeepsFields: paths a removal record keeps. */
+  kept: Set<string>;
 }
+
+/** A path a removal record keeps: listed itself, or inside a listed object. */
+const isKept = (kept: Set<string>, path: string): boolean => {
+  for (const k of kept) if (path === k || path.startsWith(`${k}.`)) return true;
+  return false;
+};
 
 /** `immutable` entries: a property name, or `{ property, when }` frozen while the condition holds. */
 export function immutableEntries(v: unknown): { names: Set<string>; when: Map<string, unknown> } {
@@ -253,6 +261,7 @@ function pushProperties(
       immutableWhen: top ? marks.immutableWhen.get(name) : undefined,
       generatedFrom: generatedFrom(prop.generatedFrom),
       moderatorOnly: top && marks.moderatorOnly.has(name) ? true : undefined,
+      keptOnRemoval: isKept(marks.kept, path) ? true : undefined,
       transient: top && marks.transient.has(name) ? true : undefined,
       requiredSince: typeof prop.requiredSince === 'number' ? prop.requiredSince : undefined,
       entryPayload: top && marks.entryPayload.has(name) ? true : undefined,
@@ -280,6 +289,7 @@ function buildEntity(name: string, schema: Schema, defs: Record<string, unknown>
     transient: stringList(schema.transient),
     entryPayload: stringList(schema.entryPayload),
     moderatorOnly: stringList(abilities.changeFields),
+    kept: abilities.delete === true && abilities.deleteKeepsRecord !== false ? stringList(abilities.deleteKeepsFields) : new Set(),
   };
   // An index property `<reference>.<field>` reads the field of the document
   // the top-level reference points at (derived index properties).
@@ -320,6 +330,7 @@ function buildEntity(name: string, schema: Schema, defs: Record<string, unknown>
   for (const f of marks.indexed) if (f.startsWith('$')) systemNames.add(f);
   for (const t of terminals) if (t.startsWith('$')) systemNames.add(t);
   for (const r of typeReferences) systemNames.add(r.path);
+  for (const k of marks.kept) if (k.startsWith('$')) systemNames.add(k);
   const present = new Set(fields.map((f) => f.path));
   const order = (n: string) => (SYSTEM_ORDER.includes(n) ? SYSTEM_ORDER.indexOf(n) : SYSTEM_ORDER.length);
   for (const n of [...systemNames].filter((n) => !present.has(n)).sort((a, b) => order(a) - order(b))) {
@@ -334,6 +345,7 @@ function buildEntity(name: string, schema: Schema, defs: Record<string, unknown>
       unique: marks.unique.has(n),
       constraints: {},
       reference: typeReferences.find((r) => r.path === n),
+      keptOnRemoval: marks.kept.has(n) ? true : undefined,
       written: {},
     });
   }

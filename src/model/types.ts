@@ -96,6 +96,8 @@ export interface Field {
   generatedFrom?: { function: string; params: string[] };
   /** Listed in `moderatorAbilities.changeFields`: only the contract's moderators write it. */
   moderatorOnly?: boolean;
+  /** Listed in `moderatorAbilities.deleteKeepsFields` (or inside a listed object): stays public in a moderator's removal record. */
+  keptOnRemoval?: boolean;
   /** Listed in `transient`: validated on the transition, never stored. */
   transient?: boolean;
   /** requiredSince: the contract version from which the property is required. */

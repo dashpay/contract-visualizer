@@ -18,6 +18,15 @@ import {
   refHref,
   type Chip,
 } from '../model/describe';
+import {
+  MODERATION_HREF,
+  moderationBandLines,
+  moderationOverview,
+  RESTORE_WINDOW_SECONDS,
+  TEAM_ABILITY_LABEL,
+  type RecordField,
+  type TypeModeration,
+} from '../model/moderation';
 
 interface Props {
   selection: Selection;
@@ -114,6 +123,74 @@ function ChipList({ chips }: { chips: Chip[] }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+/** The moderators' powers over a type, one sentence each. */
+function ModerationSection({ moderation }: { moderation: TypeModeration }) {
+  return (
+    <Section title="moderators may">
+      <ul className="cv-explain cv-explain-moderation">
+        {moderationBandLines(moderation).map((l) => (
+          <li key={l.text}>
+            <strong>{l.text}.</strong> {l.detail}{' '}
+            <a href={l.href} target="_blank" rel="noreferrer" className="cv-book">
+              book ↗
+            </a>
+          </li>
+        ))}
+        {moderation.team && moderation.team.length > 0 && (
+          <li>
+            <strong>seated team: {moderation.team.map((a) => TEAM_ABILITY_LABEL[a]).join(', ')}.</strong> What the elected declaration
+            gives the team on this type; the ban, suspension and warning lists are contract-wide.{' '}
+            <a href={`${MODERATION_HREF.model}#elected-moderation`} target="_blank" rel="noreferrer" className="cv-book">
+              book ↗
+            </a>
+          </li>
+        )}
+      </ul>
+    </Section>
+  );
+}
+
+function RecordView({ entity, moderation, fields, referrers }: { entity: Entity; moderation: TypeModeration; fields: RecordField[]; referrers: string[] }) {
+  return (
+    <>
+      <h2>{entity.name} · removal record</h2>
+      <p className="cv-muted">shadow record · written under the contract when a moderator deletes a {entity.name}</p>
+      <p>
+        The document and its index entries are deleted; this record stays for good and says who removed it, whose it was, why and
+        when{moderation.keptFields.length ? `, and keeps ${moderation.keptFields.join(', ')} public` : ''}. Within{' '}
+        {formatDuration(RESTORE_WINDOW_SECONDS)} a moderator may restore the document exactly as it was (its bytes must hash to{' '}
+        <code>documentHash</code>); the record then stays, marked restored
+        {moderation.settled ? '. A deletion the seated team approved once the document was settled is never restored' : ''}.{' '}
+        <a href={MODERATION_HREF.record} target="_blank" rel="noreferrer" className="cv-book">
+          book ↗
+        </a>
+      </p>
+      <Section title="fields">
+        <ul className="cv-explain">
+          {fields.map((f) => (
+            <li key={f.name}>
+              <code>{f.name}</code> <span className="cv-muted">{f.type}{f.optional ? ', optional' : ''}</span>
+              {f.kept ? <span className="cv-chip cv-tone-moderation"> kept</span> : null} {f.detail}
+            </li>
+          ))}
+        </ul>
+      </Section>
+      <Section title="reading it">
+        <p className="cv-muted">
+          <code>getContractDocumentRemovals</code> reads the records by document id or by page, with proof; the records are not indexed by
+          the kept values.
+          {referrers.length
+            ? ` ${referrers.join(', ')} refer to ${entity.name} as moderatedDocument: once removed, a join through them returns this record.`
+            : ''}{' '}
+          <a href={MODERATION_HREF.kept} target="_blank" rel="noreferrer" className="cv-book">
+            book ↗
+          </a>
+        </p>
+      </Section>
+    </>
   );
 }
 
@@ -294,6 +371,7 @@ function EntityView({
 }) {
   const costJson = contractJsonFor?.(entity.name);
   const chips = documentTypeChips(entity);
+  const moderation = moderationOverview(model)?.types.find((t) => t.type === entity.name);
   const shown = new Set(['ttl', 'indexOnly', 'documentsMutable', 'canBeDeleted', 'moderatorAbilities', 'creationRestrictionMode', 'transferable', 'tradeMode', 'documentsKeepHistory', 'keepsTransferHistory', 'keepsPurchaseHistory', 'keepsPricingHistory', 'actionFees', 'tokenCost', 'documentsCountable', 'documentsSummable', 'documentsAverageable', 'rangeCountable', 'rangeSummable', 'rangeAverageable', 'signatureSecurityLevelRequirement', 'requiresIdentityEncryptionBoundedKey', 'requiresIdentityDecryptionBoundedKey']);
   const rest = Object.fromEntries(Object.entries(entity.config).filter(([k]) => !shown.has(k)));
   const outgoing = model.relationships.filter((r) => r.from === entity.name && r.kind === 'declared').length;
@@ -321,7 +399,8 @@ function EntityView({
           </button>
         )}
       </div>
-      <ChipList chips={chips} />
+      {moderation && <ModerationSection moderation={moderation} />}
+      <ChipList chips={moderation ? chips.filter((c) => c.tone !== 'moderation') : chips} />
       {entity.typeReferences.map((r) => (
         <ReferenceView key={r.path} reference={r} />
       ))}
@@ -467,6 +546,10 @@ export function InspectorPanel({
           hidden={hiddenEdges.has(selection.relationship.id)}
           onToggle={() => onToggleEdge(selection.relationship.id)}
         />
+      )}
+
+      {selection.kind === 'record' && (
+        <RecordView entity={selection.entity} moderation={selection.moderation} fields={selection.fields} referrers={selection.referrers} />
       )}
 
       {selection.kind === 'external' && (
